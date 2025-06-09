@@ -71,3 +71,6 @@ if __name__ == "__main__":
             # os.system(f"open {musicPath}")
             speak("Playing music in YouTube...")
             # webbrowser.open("https://www.youtube.com/watch?v=yszisrGQsmY") #customising later on
+
+
+# https://chatgpt.com/share/68468d39-5d14-8008-8245-2031e11b6e0e
