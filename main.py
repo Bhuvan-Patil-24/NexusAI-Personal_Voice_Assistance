@@ -14,7 +14,7 @@ def takeCommand():
     r = sr.Recognizer() #Recognizer class
     with sr.Microphone() as source: #Microphone class for input voice
         print("Listening...")
-        r.pause_threshold = 1 #pause for 1 second
+        r.pause_threshold = 1 #pause for 1 sec
         audio = r.listen(source) #listen to the audio from the microphone
     try:
         print("Recognizing...")
