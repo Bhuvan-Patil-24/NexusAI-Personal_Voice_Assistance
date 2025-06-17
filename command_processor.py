@@ -102,7 +102,7 @@ class CommandProcessor:
         
         return tone_prefix
     
-    def process_command(self, command, audio_handler):
+    def process_command(self, command):
         original_command = command
         command = command.lower()
         
@@ -133,7 +133,7 @@ class CommandProcessor:
         elif intent == 'search':
             query = params.get('query', 'general information')
             entities = params.get('entities', {})
-            audio_handler.speak(f"Searching for information about {query}")
+            print(f"Searching for {query}...")
             response = self.smart_search(query, entities)
         
         elif intent == 'open':

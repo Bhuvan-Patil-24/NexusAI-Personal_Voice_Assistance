@@ -80,6 +80,11 @@ class DataManager:
         except Exception as e:
             print(f"Could not save context memory: {e}")
     
+    def save_all_data(self):
+        self.save_conversation_history()
+        self.save_user_preferences()  
+        self.save_context_memory()
+
     def get_storage_info(self):
         info = {
             'conversation_count': len(self.conversation_history),
