@@ -1,6 +1,3 @@
-"""
-Command processing module for NexusAI
-"""
 import datetime
 import wikipedia
 import webbrowser
@@ -14,19 +11,16 @@ class CommandProcessor:
         self.data_manager = data_manager
     
     def get_current_time(self):
-        """Get current time"""
         now = datetime.datetime.now()
         time_str = now.strftime("%I:%M %p")
         return f"The current time is {time_str}"
     
     def get_current_date(self):
-        """Get current date"""
         today = datetime.date.today()
         date_str = today.strftime("%B %d, %Y")
         return f"Today is {date_str}"
     
     def search_wikipedia(self, query):
-        """Search Wikipedia for information"""
         try:
             # Get summary from Wikipedia
             result = wikipedia.summary(query, sentences=2)
@@ -42,7 +36,6 @@ class CommandProcessor:
             return "I couldn't find information about that topic on Wikipedia."
     
     def open_website(self, site):
-        """Open websites"""
         if site in WEBSITES:
             webbrowser.open(WEBSITES[site])
             return f"Opening {site.title()}"
@@ -57,11 +50,9 @@ class CommandProcessor:
         return "Weather feature requires an API key. Please set up OpenWeatherMap API for weather updates."
     
     def tell_joke(self):
-        """Tell a random joke"""
         return random.choice(JOKES)
     
     def calculate_expression(self, expression):
-        """Safely calculate mathematical expressions"""
         try:
             # Remove any non-mathematical characters for safety
             safe_expr = re.sub(r'[^0-9+\-*/().\s]', '', expression)
@@ -71,7 +62,6 @@ class CommandProcessor:
             return "I couldn't calculate that expression. Please check your math problem."
     
     def smart_search(self, query, entities):
-        """Enhanced search using NLP insights"""
         # If entities are detected, use them to improve search
         if entities:
             if 'PERSON' in entities:
@@ -84,7 +74,6 @@ class CommandProcessor:
         return self.search_wikipedia(query)
     
     def handle_follow_up(self, text):
-        """Handle follow-up questions based on context"""
         if 'last_intent' in self.data_manager.context_memory:
             last_intent = self.data_manager.context_memory['last_intent']
             
@@ -98,7 +87,6 @@ class CommandProcessor:
         return "", False
     
     def generate_contextual_response(self, intent, params, sentiment):
-        """Generate contextual responses based on NLP analysis"""
         # Adjust response tone based on sentiment
         if sentiment == 'negative':
             tone_prefix = "I understand you might be feeling down. "
@@ -115,7 +103,6 @@ class CommandProcessor:
         return tone_prefix
     
     def process_command(self, command, audio_handler):
-        """Enhanced command processing with NLP"""
         original_command = command
         command = command.lower()
         
