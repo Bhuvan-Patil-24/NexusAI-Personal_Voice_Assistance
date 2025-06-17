@@ -1,6 +1,3 @@
-"""
-Configuration settings for NexusAI
-"""
 from pathlib import Path
 
 # Assistant Configuration
@@ -46,7 +43,8 @@ WEBSITES = {
     'youtube': 'https://www.youtube.com',
     'github': 'https://www.github.com',
     'stackoverflow': 'https://www.stackoverflow.com',
-    'reddit': 'https://www.reddit.com'
+    'reddit': 'https://www.reddit.com',
+    'wikipedia': 'https://www.wikipedia.org'
 }
 
 # Jokes database
@@ -54,6 +52,11 @@ JOKES = [
     "Why don't scientists trust atoms? Because they make up everything!",
     "Why did the scarecrow win an award? He was outstanding in his field!",
     "Why don't eggs tell jokes? They'd crack each other up!",
+    "What do you call a bear with no teeth? A gummy bear!",
+    "Why did the chicken cross the road? To get to the other side!",
+    "I told my wife she was drawing her eyebrows too high. She looked surprised.",
+    "Why don't skeletons fight each other? They don't have the guts!",
     "What do you call a fake noodle? An impasta!",
+    "Why did the tomato turn red? Because it saw the salad dressing!",
     "Why did the math book look so sad? Because it had too many problems!"
 ]
