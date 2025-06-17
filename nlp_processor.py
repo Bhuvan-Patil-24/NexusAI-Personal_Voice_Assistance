@@ -1,8 +1,5 @@
-"""
-Natural Language Processing module for NexusAI
-"""
 import nltk
-from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.chunk import ne_chunk
@@ -18,7 +15,6 @@ class NLPProcessor:
         self.setup_nlp()
     
     def setup_nlp(self):
-        """Initialize NLP components and download required data"""
         try:
             # Download NLTK data if not already present
             for item in NLTK_DOWNLOADS:
@@ -42,7 +38,6 @@ class NLPProcessor:
             print(f"NLP setup warning: {e}")
     
     def preprocess_text(self, text):
-        """Advanced text preprocessing using NLP"""
         # Convert to lowercase
         text = text.lower()
         
@@ -59,7 +54,6 @@ class NLPProcessor:
         return processed_tokens
     
     def extract_entities(self, text):
-        """Extract named entities from text"""
         entities = {}
         
         if self.nlp:
@@ -85,7 +79,6 @@ class NLPProcessor:
         return entities
     
     def analyze_sentiment(self, text):
-        """Analyze sentiment of the text"""
         blob = TextBlob(text)
         sentiment = blob.sentiment
         
@@ -97,7 +90,6 @@ class NLPProcessor:
             return 'neutral'
     
     def classify_intent(self, text):
-        """Classify the intent of user input using NLP"""
         text_lower = text.lower()
         tokens = self.preprocess_text(text)
         
@@ -123,7 +115,6 @@ class NLPProcessor:
         return 'unknown'
     
     def extract_parameters(self, text, intent):
-        """Extract parameters from text based on intent"""
         entities = self.extract_entities(text)
         params = {}
         
@@ -164,7 +155,6 @@ class NLPProcessor:
         return params
     
     def get_fuzzy_matches(self, command):
-        """Find similar commands using fuzzy matching"""
         all_patterns = []
         for intent_patterns in INTENT_PATTERNS.values():
             all_patterns.extend(intent_patterns)
