@@ -1,11 +1,7 @@
-"""
-Data management module for NexusAI
-"""
 import json
 import pickle
 import datetime
 from collections import Counter
-from pathlib import Path
 from config import DATA_DIR, HISTORY_FILE, PREFERENCES_FILE, MEMORY_FILE
 
 class DataManager:
@@ -19,7 +15,6 @@ class DataManager:
         self.context_memory = self.load_context_memory()
     
     def load_conversation_history(self):
-        """Load conversation history from file"""
         try:
             if HISTORY_FILE.exists():
                 with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
@@ -35,7 +30,6 @@ class DataManager:
         return []
     
     def save_conversation_history(self):
-        """Save conversation history to file"""
         try:
             # Convert datetime objects to strings for JSON serialization
             data_to_save = []
@@ -51,7 +45,6 @@ class DataManager:
             print(f"Could not save conversation history: {e}")
     
     def load_user_preferences(self):
-        """Load user preferences from file"""
         try:
             if PREFERENCES_FILE.exists():
                 with open(PREFERENCES_FILE, 'r', encoding='utf-8') as f:
@@ -63,7 +56,6 @@ class DataManager:
         return {}
     
     def save_user_preferences(self):
-        """Save user preferences to file"""
         try:
             with open(PREFERENCES_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self.user_preferences, f, indent=2, ensure_ascii=False)
@@ -71,7 +63,6 @@ class DataManager:
             print(f"Could not save user preferences: {e}")
     
     def load_context_memory(self):
-        """Load context memory from file"""
         try:
             if MEMORY_FILE.exists():
                 with open(MEMORY_FILE, 'rb') as f:
@@ -83,7 +74,6 @@ class DataManager:
         return {}
     
     def save_context_memory(self):
-        """Save context memory to file"""
         try:
             with open(MEMORY_FILE, 'wb') as f:
                 pickle.dump(self.context_memory, f)
@@ -91,7 +81,6 @@ class DataManager:
             print(f"Could not save context memory: {e}")
     
     def get_storage_info(self):
-        """Get information about stored data"""
         info = {
             'conversation_count': len(self.conversation_history),
             'preferences_count': len(self.user_preferences),
@@ -105,7 +94,6 @@ class DataManager:
         return info
     
     def clear_all_data(self):
-        """Clear all stored data (useful for privacy)"""
         try:
             if HISTORY_FILE.exists():
                 HISTORY_FILE.unlink()
@@ -124,7 +112,6 @@ class DataManager:
             return f"Error clearing data: {e}"
     
     def get_user_stats(self):
-        """Get statistics about user interactions"""
         if not self.conversation_history:
             return "No conversation data available yet."
         
@@ -162,7 +149,6 @@ class DataManager:
         return stats.strip()
     
     def learn_from_interaction(self, user_input, response, sentiment, nlp_processor):
-        """Learn from user interactions to improve responses"""
         # Store conversation history
         self.conversation_history.append({
             'timestamp': datetime.datetime.now(),
