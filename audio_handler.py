@@ -1,6 +1,3 @@
-"""
-Audio handling module for NexusAI - Speech Recognition and Text-to-Speech
-"""
 import speech_recognition as sr
 import pyttsx3
 from config import SPEECH_RATE, SPEECH_VOLUME
@@ -16,7 +13,6 @@ class AudioHandler:
         self.setup_voice()
     
     def setup_voice(self):
-        """Configure the text-to-speech voice"""
         voices = self.tts_engine.getProperty('voices')
         # Try to set a female voice if available
         for voice in voices:
@@ -29,13 +25,11 @@ class AudioHandler:
         self.tts_engine.setProperty('volume', SPEECH_VOLUME)
     
     def speak(self, text):
-        """Convert text to speech"""
         print(f"NexusAI: {text}")
         self.tts_engine.say(text)
         self.tts_engine.runAndWait()
     
     def listen(self):
-        """Listen for audio input and convert to text"""
         try:
             with self.microphone as source:
                 print("Listening...")
