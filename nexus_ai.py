@@ -1,5 +1,3 @@
-# nexus_ai.py
-"""Main NexusAI application"""
 import time
 from threading import Thread
 from config import WAKE_WORD
@@ -10,7 +8,6 @@ from command_processor import CommandProcessor
 
 class NexusAI:
     def __init__(self):
-        """Initialize all components of NexusAI"""
         print("Initializing NexusAI components...")
         
         # Initialize core components
@@ -31,10 +28,9 @@ class NexusAI:
         print("NexusAI initialization complete!")
         
         # Greet user on startup
-        self.audio_handler.speak("Hello! I'm NexusAI, your personal voice assistant with advanced natural language processing. Say 'Nexus' followed by your command to wake me up.")
+        self.audio_handler.speak("Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up.")
     
     def handle_wake_detection(self, audio_input):
-        """Handle wake word detection and command processing"""
         if self.wake_word in audio_input or self.is_listening:
             # Process the command
             response, should_exit = self.command_processor.process_command(audio_input)
@@ -55,8 +51,7 @@ class NexusAI:
             Thread(target=reset_listening, daemon=True).start()
     
     def run(self):
-        """Main loop for the voice assistant"""
-        self.audio_handler.speak("I'm ready to help! Say 'Nexus' followed by your command.")
+        self.audio_handler.speak("Hii! Say 'Nexus' followed by your command.")
         
         while self.running:
             try:
@@ -75,21 +70,19 @@ class NexusAI:
                 self.audio_handler.speak("Sorry, I encountered an error. Please try again.")
     
     def shutdown(self):
-        """Clean shutdown of the assistant"""
         self.running = False
         
         # Save all data before shutdown
         try:
             self.data_manager.save_all_data()
-            print("Data saved successfully.")
+            print("Data saved to DB.")
         except Exception as e:
             print(f"Error saving data: {e}")
         
-        self.audio_handler.speak("Goodbye! Have a great day!")
+        self.audio_handler.speak("Goodbye Sir! Have a great day!")
         print("NexusAI shutdown complete.")
     
     def get_system_info(self):
-        """Get system information for debugging"""
         info = {
             'is_listening': self.is_listening,
             'wake_word': self.wake_word,
@@ -99,7 +92,6 @@ class NexusAI:
         return info
 
 def main():
-    """Main function to run NexusAI with NLP capabilities"""
     try:
         print("=" * 50)
         print("🤖 NexusAI - Advanced Voice Assistant")
