@@ -12,7 +12,7 @@ PREFERENCES_FILE = DATA_DIR / "user_preferences.json"
 MEMORY_FILE = DATA_DIR / "context_memory.pickle"
 
 # NLP Configuration
-NLTK_DOWNLOADS = ['punkt', 'stopwords', 'wordnet', 'averaged_perceptron_tagger', 'maxent_ne_chunker', 'words']
+NLTK_DOWNLOADS = ['punkt', 'punkt_tab', 'stopwords', 'wordnet', 'averaged_perceptron_tagger', 'maxent_ne_chunker', 'words']
 SPACY_MODEL = "en_core_web_sm"
 
 # Intent patterns for command classification
