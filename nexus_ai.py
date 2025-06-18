@@ -93,19 +93,7 @@ def main():
         print("=" * 50)
         print("🤖 NexusAI - Advanced Voice Assistant")
         print("=" * 50)
-        print("Initializing NexusAI with Natural Language Processing...")
-        print("\nRequired packages:")
-        print("- speechrecognition")
-        print("- pyttsx3") 
-        print("- wikipedia")
-        print("- requests")
-        print("- nltk")
-        print("- textblob")
-        print("- spacy")
-        print("\nFor full NLP features, also run:")
-        print("python -m spacy download en_core_web_sm")
-        print("=" * 50)
-        
+        print()
         # Create and run the assistant
         assistant = NexusAI()
         
