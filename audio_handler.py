@@ -34,19 +34,22 @@ class AudioHandler:
             with self.microphone as source:
                 print("Listening...")
                 # Adjust for ambient noise
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                # self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
                 # Listen for audio
                 audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
             
             # Convert audio to text
-            text = self.recognizer.recognize_google(audio).lower()
+            print("Recognizing...")
+            text = self.recognizer.recognize_google(audio, language='en-in').lower()
             print(f"You said: {text}")
             return text
             
-        except sr.UnknownValueError:
+        except sr.UnknownValueError as uve:
+            print(uve)
             return ""
         except sr.RequestError:
             self.speak("Sorry, I'm having trouble with speech recognition right now.")
             return ""
-        except sr.WaitTimeoutError:
+        except sr.WaitTimeoutError as wte:
+            print(wte)
             return ""
