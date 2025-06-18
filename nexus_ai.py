@@ -16,8 +16,7 @@ class NexusAI:
         self.audio_handler = AudioHandler()
         self.command_processor = CommandProcessor(
             self.nlp_processor, 
-            self.data_manager, 
-            self.audio_handler
+            self.data_manager
         )
         
         # Assistant state
@@ -51,8 +50,6 @@ class NexusAI:
             Thread(target=reset_listening, daemon=True).start()
     
     def run(self):
-        self.audio_handler.speak("Hii! Say 'Nexus' followed by your command.")
-        
         while self.running:
             try:
                 # Listen for input
