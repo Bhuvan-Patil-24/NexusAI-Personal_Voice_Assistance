@@ -111,16 +111,12 @@ def main():
     except Exception as e:
         print(f"Failed to start NexusAI: {e}")
         print("\nTroubleshooting:")
-        print("1. Make sure all required modules are present:")
+        print("Make sure all required modules are present:")
         print("   - config.py")
         print("   - nlp_processor.py") 
         print("   - data_manager.py")
         print("   - audio_handler.py")
         print("   - command_processor.py")
-        print("\n2. Install required packages:")
-        print("   pip install speechrecognition pyttsx3 wikipedia requests pyaudio nltk textblob spacy")
-        print("\n3. Download spaCy model:")
-        print("   python -m spacy download en_core_web_sm")
 
 if __name__ == "__main__":
     main()
