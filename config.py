@@ -3,7 +3,7 @@ from pathlib import Path
 # Assistant Configuration
 WAKE_WORD = "nexus"
 SPEECH_RATE = 180
-SPEECH_VOLUME = 0.9
+SPEECH_VOLUME = 1.0
 
 # Data Storage Configuration
 DATA_DIR = Path("nexus_ai_data")
