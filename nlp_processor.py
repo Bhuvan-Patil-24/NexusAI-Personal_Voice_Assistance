@@ -21,12 +21,11 @@ class NLPProcessor:
                 try:
                     nltk.data.find(f'tokenizers/{item}')
                 except LookupError:
+                    print(f"Downloading {item}...")
                     nltk.download(item, quiet=True)
-            
             # Initialize NLP tools
             self.lemmatizer = WordNetLemmatizer()
             self.stop_words = set(stopwords.words('english'))
-            
             # Try to load spaCy model
             try:
                 self.nlp = spacy.load(SPACY_MODEL)

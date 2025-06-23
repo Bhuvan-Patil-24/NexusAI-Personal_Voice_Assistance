@@ -34,7 +34,7 @@ class AudioHandler:
             with self.microphone as source:
                 print("Listening...")
                 # Adjust for ambient noise
-                # self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
                 # Listen for audio
                 audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
             

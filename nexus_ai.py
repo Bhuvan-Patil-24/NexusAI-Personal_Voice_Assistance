@@ -5,6 +5,7 @@ from nlp_processor import NLPProcessor
 from data_manager import DataManager
 from audio_handler import AudioHandler
 from command_processor import CommandProcessor
+# import traceback
 
 class NexusAI:
     def __init__(self):
@@ -64,6 +65,7 @@ class NexusAI:
                 break
             except Exception as e:
                 print(f"Error in main loop: {e}")
+                # traceback.print_exc()
                 self.audio_handler.speak("Sorry, I encountered an error. Please try again.")
     
     def shutdown(self):

@@ -32,7 +32,8 @@ class CommandProcessor:
                 return result
             except:
                 return "I couldn't find specific information about that topic."
-        except:
+        except Exception as e:
+            print(f"Error searching Wikipedia: {e}")
             return "I couldn't find information about that topic on Wikipedia."
     
     def open_website(self, site):
