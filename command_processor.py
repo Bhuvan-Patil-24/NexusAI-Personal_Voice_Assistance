@@ -13,12 +13,12 @@ class CommandProcessor:
     def get_current_time(self):
         now = datetime.datetime.now()
         time_str = now.strftime("%I:%M %p")
-        return f"The current time is {time_str}"
+        return f"Sir, The current time is {time_str}"
     
     def get_current_date(self):
         today = datetime.date.today()
         date_str = today.strftime("%B %d, %Y")
-        return f"Today is {date_str}"
+        return f"Sir, Today is {date_str}"
     
     def search_wikipedia(self, query):
         try:
@@ -157,11 +157,11 @@ class CommandProcessor:
             # Personalized greeting based on time and sentiment
             hour = datetime.datetime.now().hour
             if hour < 12:
-                time_greeting = "Good morning"
+                time_greeting = "Good morning Sir!"
             elif hour < 17:
-                time_greeting = "Good afternoon"
+                time_greeting = "Good afternoon Sir!"
             else:
-                time_greeting = "Good evening"
+                time_greeting = "Good evening Sir!"
             
             if sentiment == 'positive':
                 response = f"{time_greeting}! You seem to be in a great mood today. How can I help you?"

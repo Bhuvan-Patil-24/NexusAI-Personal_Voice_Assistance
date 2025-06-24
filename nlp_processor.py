@@ -21,7 +21,6 @@ class NLPProcessor:
                 try:
                     nltk.data.find(f'tokenizers/{item}')
                 except LookupError:
-                    print(f"Downloading {item}...")
                     nltk.download(item, quiet=True)
             # Initialize NLP tools
             self.lemmatizer = WordNetLemmatizer()

@@ -27,7 +27,7 @@ INTENT_PATTERNS = {
     'math': ['calculate', 'compute', 'add', 'subtract', 'multiply', 'divide', 'plus', 'minus'],
     'reminder': ['remind', 'remember', 'note', 'memo'],
     'question': ['what', 'how', 'why', 'when', 'where', 'who'],
-    'goodbye': ['bye', 'goodbye', 'exit', 'quit', 'stop', 'end']
+    'goodbye': ['bye', 'goodbye', 'exit', 'quit', 'stop', 'end', 'see you', 'talk later', 'shut down'],
 }
 
 # Emotional context patterns
