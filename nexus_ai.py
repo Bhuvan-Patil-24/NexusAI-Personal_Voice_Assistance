@@ -112,13 +112,6 @@ def main():
         
     except Exception as e:
         print(f"Failed to start NexusAI: {e}")
-        print("\nTroubleshooting:")
-        print("Make sure all required modules are present:")
-        print("   - config.py")
-        print("   - nlp_processor.py") 
-        print("   - data_manager.py")
-        print("   - audio_handler.py")
-        print("   - command_processor.py")
 
 if __name__ == "__main__":
     main()
