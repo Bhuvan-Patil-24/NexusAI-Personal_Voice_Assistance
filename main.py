@@ -1,392 +1,483 @@
 import streamlit as st
-import speech_recognition as sr
-import numpy as np
-from datetime import datetime
 import time
+from datetime import datetime
 
-# Only import webrtc components if available
-try:
-    from streamlit_webrtc import webrtc_streamer, WebRtcMode
-    WEBRTC_AVAILABLE = True
-except ImportError:
-    WEBRTC_AVAILABLE = False
-
-# Import your NexusAI backend components
+# Import your existing modules
 try:
     from config import WAKE_WORD
     from nlp_processor import NLPProcessor
     from data_manager import DataManager
     from audio_handler import AudioHandler
     from command_processor import CommandProcessor
-    NEXUS_BACKEND_AVAILABLE = True
 except ImportError as e:
-    NEXUS_BACKEND_AVAILABLE = False
-    IMPORT_ERROR = str(e)
+    st.error(f"Missing required module: {e}")
+    st.error("Please install missing packages and ensure all modules are available.")
+    st.stop()
 
-# Check if we're running in a proper Streamlit context
-def is_streamlit_running():
+# Configure Streamlit page
+st.set_page_config(
+    page_title="NexusAI Voice Assistant",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Custom CSS for modern dark theme
+st.markdown("""
+<style>
+    /* Global dark theme */
+    .stApp {
+        background-color: #000000;
+        color: #ffffff;
+    }
+    
+    /* Header styling */
+    .main-header {
+        text-align: center;
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: #00ff88;
+        text-shadow: 0 0 20px #00ff88;
+        margin-bottom: 2rem;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    /* Animation container */
+    .animation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 300px;
+        margin: 2rem 0;
+    }
+    
+    /* Pulsing animation */
+    .pulse-animation {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #00ff88, #0066cc);
+        animation: pulse 2s infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+    }
+    
+    .pulse-animation.listening {
+        animation: pulse-fast 0.5s infinite;
+        background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+        box-shadow: 0 0 30px rgba(255, 107, 107, 0.7);
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes pulse-fast {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.6;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(45deg, #00ff88, #0066cc);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.5rem 1.5rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+    }
+    
+    /* Text input styling */
+    .stTextInput > div > div > input {
+        background-color: #1a1a1a;
+        color: #ffffff;
+        border: 2px solid #00ff88;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    /* Chat message styling */
+    .chat-message {
+        background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        border-radius: 15px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid #00ff88;
+    }
+    
+    .user-message {
+        background: linear-gradient(135deg, #0066cc, #004499);
+        border-left: 4px solid #0066cc;
+        margin-left: 2rem;
+    }
+    
+    .assistant-message {
+        background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        border-left: 4px solid #00ff88;
+        margin-right: 2rem;
+    }
+    
+    /* Status indicator */
+    .status-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+        z-index: 1000;
+    }
+    
+    .status-listening {
+        background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+        color: white;
+        animation: pulse 1s infinite;
+    }
+    
+    .status-idle {
+        background: linear-gradient(45deg, #00ff88, #0066cc);
+        color: white;
+    }
+    
+    .status-ready {
+        background: linear-gradient(45deg, #ffaa00, #ff6600);
+        color: white;
+    }
+    
+    /* Hide streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2.5rem;
+        }
+        .pulse-animation {
+            width: 120px;
+            height: 120px;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize session state variables
+
+
+def initialize_session_state():
+    """Initialize session state variables"""
+    if 'nexus_initialized' not in st.session_state:
+        st.session_state.nexus_initialized = False
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+    if 'is_listening' not in st.session_state:
+        st.session_state.is_listening = False
+    if 'wake_word' not in st.session_state:
+        st.session_state.wake_word = WAKE_WORD.lower()
+    if 'last_processed_input' not in st.session_state:
+        st.session_state.last_processed_input = ""
+    if 'voice_listening_enabled' not in st.session_state:
+        st.session_state.voice_listening_enabled = True
+
+
+def initialize_nexus_components():
+    """Initialize NexusAI components"""
     try:
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-        return get_script_run_ctx() is not None
-    except:
+        with st.spinner("Initializing NexusAI components..."):
+            # Initialize core components
+            st.session_state.data_manager = DataManager()
+            st.session_state.nlp_processor = NLPProcessor()
+            st.session_state.audio_handler = AudioHandler()
+            st.session_state.command_processor = CommandProcessor(
+                st.session_state.nlp_processor,
+                st.session_state.data_manager
+            )
+
+            st.session_state.nexus_initialized = True
+
+            # Add welcome message
+            welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command, or type your message below."
+            st.session_state.chat_history.append({
+                'type': 'assistant',
+                'message': welcome_msg,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            })
+
+            # Welcome speech
+            try:
+                st.session_state.audio_handler.speak(welcome_msg)
+            except Exception as e:
+                print(f"Error with text-to-speech: {e}")
+
+            st.success("NexusAI initialized successfully!")
+            time.sleep(1)
+            return True
+
+    except Exception as e:
+        st.error(f"Failed to initialize NexusAI: {e}")
         return False
 
-# Streamlit-compatible NexusAI wrapper
-class StreamlitNexusAI:
-    def __init__(self):
-        if not NEXUS_BACKEND_AVAILABLE:
-            raise ImportError(f"NexusAI backend components not available: {IMPORT_ERROR}")
-        
-        # Initialize core components (same as original NexusAI)
-        self.data_manager = DataManager()
-        self.nlp_processor = NLPProcessor()
-        self.audio_handler = AudioHandler()
-        self.command_processor = CommandProcessor(
-            self.nlp_processor, 
-            self.data_manager
-        )
-        
-        # Assistant state
-        self.is_listening = False
-        self.wake_word = WAKE_WORD.lower()
-        self.running = True
-        
-        # Streamlit-specific state
-        self.last_response = ""
-        self.conversation_history = []
-        
-    def process_input(self, user_input):
-        """Process user input and return response"""
+
+def listen_for_voice():
+    """Listen for voice input"""
+    if st.session_state.nexus_initialized and st.session_state.voice_listening_enabled:
         try:
-            # Check for wake word or if already listening
-            if self.wake_word in user_input.lower() or self.is_listening:
-                # Process the command using your existing command processor
-                response, should_exit = self.command_processor.process_command(user_input)
-                
-                # Add to conversation history
-                self.conversation_history.append({
-                    "role": "User",
-                    "message": user_input,
-                    "time": datetime.now().strftime("%H:%M:%S")
-                })
-                
-                self.conversation_history.append({
-                    "role": "Nexus",
-                    "message": response,
-                    "time": datetime.now().strftime("%H:%M:%S")
-                })
-                
-                # Set listening state for follow-up commands
-                self.is_listening = True
-                
-                # Schedule reset of listening state (simulated)
-                # In Streamlit, we'll handle this differently
-                
-                return response, should_exit
-            else:
-                return f"Please say '{WAKE_WORD}' followed by your command to activate me.", False
-                
+            st.session_state.is_listening = True
+
+            # Listen for audio input
+            audio_input = st.session_state.audio_handler.listen()
+
+            if audio_input:
+                # Check for wake word or if already listening
+                if st.session_state.wake_word in audio_input.lower():
+                    # Add user message
+                    st.session_state.chat_history.append({
+                        'type': 'user',
+                        'message': audio_input,
+                        'timestamp': datetime.now().strftime("%H:%M:%S")
+                    })
+
+                    # Process command
+                    response, should_exit = st.session_state.command_processor.process_command(
+                        audio_input)
+
+                    # Add assistant response
+                    st.session_state.chat_history.append({
+                        'type': 'assistant',
+                        'message': response,
+                        'timestamp': datetime.now().strftime("%H:%M:%S")
+                    })
+
+                    # Speak response
+                    try:
+                        st.session_state.audio_handler.speak(response)
+                    except Exception as e:
+                        print(f"Error with text-to-speech: {e}")
+
+                    if should_exit:
+                        st.session_state.voice_listening_enabled = False
+                        st.success("NexusAI has been shut down.")
+
         except Exception as e:
-            error_msg = f"Error processing command: {str(e)}"
-            return error_msg, False
-    
-    def get_system_info(self):
-        """Get system information"""
-        info = {
-            'is_listening': self.is_listening,
-            'wake_word': self.wake_word,
-            'running': self.running,
-            'conversation_count': len(self.conversation_history),
-            'data_info': self.data_manager.get_storage_info() if hasattr(self.data_manager, 'get_storage_info') else None
-        }
-        return info
-    
-    def reset_listening_state(self):
-        """Reset listening state"""
-        self.is_listening = False
-    
-    def shutdown(self):
-        """Shutdown the assistant"""
+            st.error(f"Error with voice recognition: {e}")
+        finally:
+            st.session_state.is_listening = False
+
+
+def process_text_input(text_input):
+    """Process text input from the chat box"""
+    if text_input.strip() and st.session_state.nexus_initialized:
         try:
-            self.data_manager.save_all_data()
-            self.running = False
-            return "Data saved successfully. Goodbye!"
-        except Exception as e:
-            return f"Error during shutdown: {str(e)}"
+            # Add user message
+            st.session_state.chat_history.append({
+                'type': 'user',
+                'message': text_input,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            })
 
-# Audio processor class for Streamlit
-class StreamlitAudioProcessor:
-    def __init__(self):
-        self.recognizer = sr.Recognizer()
-        self.audio_buffer = b""
-        self.sample_rate = 16000
+            # Process command
+            response, should_exit = st.session_state.command_processor.process_command(
+                text_input)
 
-    def recv(self, frame):
-        if hasattr(frame, 'to_ndarray'):
-            audio = frame.to_ndarray().flatten().astype(np.int16).tobytes()
-            self.audio_buffer += audio
-        return frame
+            # Add assistant response
+            st.session_state.chat_history.append({
+                'type': 'assistant',
+                'message': response,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            })
 
-    def get_text(self):
-        if not self.audio_buffer:
-            return None
-        try:
-            audio_data = sr.AudioData(self.audio_buffer, self.sample_rate, 2)
-            return self.recognizer.recognize_google(audio_data)
-        except sr.UnknownValueError:
-            return "Sorry, I couldn't understand that."
-        except sr.RequestError as e:
-            return f"Speech Recognition API error: {e}"
-        except Exception as e:
-            return f"Error processing audio: {e}"
-
-    def clear_buffer(self):
-        self.audio_buffer = b""
-
-# Main app function
-def main():
-    # Page configuration
-    st.set_page_config(
-        page_title="NexusAI Voice Assistant",
-        page_icon="🤖",
-        layout="wide"
-    )
-
-    # Initialize session state
-    if "nexus_ai" not in st.session_state:
-        if NEXUS_BACKEND_AVAILABLE:
+            # Speak response
             try:
-                st.session_state.nexus_ai = StreamlitNexusAI()
-                st.session_state.backend_status = "✅ Backend Loaded"
+                st.session_state.audio_handler.speak(response)
             except Exception as e:
-                st.session_state.nexus_ai = None
-                st.session_state.backend_status = f"❌ Backend Error: {str(e)}"
-        else:
-            st.session_state.nexus_ai = None
-            st.session_state.backend_status = f"❌ Backend Not Available: {IMPORT_ERROR}"
-    
-    if "audio_processor" not in st.session_state:
-        st.session_state.audio_processor = StreamlitAudioProcessor()
-    
-    if "voice_text" not in st.session_state:
-        st.session_state.voice_text = ""
-    
-    if "listening_timeout" not in st.session_state:
-        st.session_state.listening_timeout = None
+                print(f"Error with text-to-speech: {e}")
 
-    # Custom CSS (same as before)
-    st.markdown("""
-        <style>
-        .main-header {
-            text-align: center;
-            color: #6c63ff;
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            if should_exit:
+                st.session_state.voice_listening_enabled = False
+                st.success("NexusAI has been shut down.")
+
+        except Exception as e:
+            st.error(f"Error processing text input: {e}")
+
+
+def get_system_info():
+    """Get system information"""
+    try:
+        info = {
+            'is_listening': st.session_state.get('is_listening', False),
+            'wake_word': st.session_state.get('wake_word', 'nexus'),
+            'voice_listening_enabled': st.session_state.get('voice_listening_enabled', False),
+            'chat_messages': len(st.session_state.get('chat_history', [])),
+            'current_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'nexus_initialized': st.session_state.get('nexus_initialized', False)
         }
-        
-        .sub-header {
-            text-align: center;
-            color: #8b5cf6;
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .status-card {
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            text-align: center;
-        }
-        
-        .status-success {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .status-error {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
-        }
-        
-        .chat-message {
-            padding: 1rem;
-            margin: 0.5rem 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .user-message {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-left: 20%;
-        }
-        
-        .assistant-message {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            margin-right: 20%;
-        }
-        
-        .system-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 5px;
-            border-left: 4px solid #6c63ff;
-        }
-        </style>
+
+        # Add data manager info if available
+        if st.session_state.get('nexus_initialized', False):
+            try:
+                if hasattr(st.session_state.data_manager, 'get_storage_info'):
+                    info['data_info'] = st.session_state.data_manager.get_storage_info()
+            except:
+                pass
+
+        return info
+    except Exception as e:
+        return {'error': str(e)}
+
+
+def main():
+    # Initialize session state
+    initialize_session_state()
+
+    # Initialize NexusAI components if not already done
+    if not st.session_state.nexus_initialized:
+        if not initialize_nexus_components():
+            st.stop()
+
+    # Determine status
+    if st.session_state.is_listening:
+        status_class = "status-listening"
+        status_text = "🎤 LISTENING"
+        animation_class = "pulse-animation listening"
+    elif st.session_state.voice_listening_enabled:
+        status_class = "status-ready"
+        status_text = "🟡 READY"
+        animation_class = "pulse-animation"
+    else:
+        status_class = "status-idle"
+        status_text = "💤 IDLE"
+        animation_class = "pulse-animation"
+
+    # Status indicator
+    st.markdown(f"""
+    <div class="status-indicator {status_class}">
+        {status_text}
+    </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar
-    with st.sidebar:
-        st.markdown("### 🔧 System Status")
-        st.markdown(f"**Backend:** {st.session_state.backend_status}")
-        
-        if st.session_state.nexus_ai:
-            system_info = st.session_state.nexus_ai.get_system_info()
-            st.markdown("### 📊 System Info")
-            st.json(system_info)
-            
-            if st.button("🔄 Reset Listening State"):
-                st.session_state.nexus_ai.reset_listening_state()
-                st.success("Listening state reset!")
-            
-            if st.button("💾 Save Data"):
-                try:
-                    st.session_state.nexus_ai.data_manager.save_all_data()
-                    st.success("Data saved successfully!")
-                except Exception as e:
-                    st.error(f"Error saving data: {e}")
-            
-            if st.button("🛑 Shutdown Assistant"):
-                shutdown_msg = st.session_state.nexus_ai.shutdown()
-                st.info(shutdown_msg)
-        
-        st.markdown("### 🕓 Conversation History")
-        if st.button("🗑️ Clear History"):
-            if st.session_state.nexus_ai:
-                st.session_state.nexus_ai.conversation_history = []
-            st.rerun()
+    # Main header
+    st.markdown('<h1 class="main-header">🤖 NexusAI</h1>',
+                unsafe_allow_html=True)
 
-    # Main content
-    st.markdown('<h1 class="main-header">🤖 NexusAI Assistant</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">🎙️ Your Intelligent Voice Companion</p>', unsafe_allow_html=True)
-
-    # Check if we're in a proper Streamlit session
-    if not is_streamlit_running():
-        st.markdown("""
-        <div class="status-card status-error">
-            <h3>⚠️ Incorrect Launch Method</h3>
-            <p>Please run this app using the command:</p>
-            <code>streamlit run main.py</code>
-            <p>Do not use <code>python -u</code> to run Streamlit applications.</p>
+    # Central animation
+    st.markdown(f"""
+    <div class="animation-container">
+        <div class="{animation_class}">
+            <span style="font-size: 3rem;">🤖</span>
         </div>
-        """, unsafe_allow_html=True)
-        return
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Backend status display
-    if not NEXUS_BACKEND_AVAILABLE:
-        st.markdown(f"""
-        <div class="status-card status-error">
-            <h3>❌ NexusAI Backend Not Available</h3>
-            <p>Missing required modules: {IMPORT_ERROR}</p>
-            <p>Please ensure all NexusAI components are present:</p>
-            <ul>
-                <li>config.py</li>
-                <li>nlp_processor.py</li>
-                <li>data_manager.py</li>
-                <li>audio_handler.py</li>
-                <li>command_processor.py</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        return
-    
-    if not st.session_state.nexus_ai:
-        st.error("Failed to initialize NexusAI backend. Check the sidebar for details.")
-        return
+    # Voice listening controls
+    col_left, col_center, col_right = st.columns([1, 2, 1])
 
-    # Voice input section
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        if WEBRTC_AVAILABLE:
-            try:
-                st.markdown("### 🎤 Voice Input")
-                
-                audio_ctx = webrtc_streamer(
-                    key="nexus-audio",
-                    mode=WebRtcMode.RECVONLY,
-                    audio_frame_callback=st.session_state.audio_processor.recv,
-                    media_stream_constraints={"audio": True, "video": False},
-                    async_processing=True,
-                )
-                
-                if audio_ctx.state.playing:
-                    st.markdown('<div class="status-card status-success">🎧 Listening... Click "Stop & Process" when done speaking.</div>', unsafe_allow_html=True)
-                    
-                    if st.button("🔴 Stop & Process Audio", key="stop_audio"):
-                        transcribed_text = st.session_state.audio_processor.get_text()
-                        if transcribed_text and transcribed_text not in ["Sorry, I couldn't understand that.", None]:
-                            st.session_state.voice_text = transcribed_text
-                            st.session_state.audio_processor.clear_buffer()
-                            st.rerun()
-                
-            except Exception as e:
-                st.error(f"WebRTC Error: {e}")
-                st.info("WebRTC microphone access failed. Please use the text input below.")
+    with col_center:
+        if st.session_state.voice_listening_enabled:
+            if st.button("🎤 Listen for Voice Command", key="voice_btn", help="Click to listen for voice commands"):
+                listen_for_voice()
+                st.rerun()
         else:
-            st.warning("WebRTC components not available. Using text input only.")
+            if st.button("🔄 Restart Voice Assistant", key="restart_btn", help="Restart the voice assistant"):
+                st.session_state.voice_listening_enabled = True
+                st.rerun()
 
-    # Text input
-    st.markdown("### 💬 Text Input")
-    typed_input = st.chat_input("Type your message here or use voice input above...")
-    
-    # Process input (voice or text)
-    final_input = typed_input or st.session_state.voice_text
-    
-    if final_input and st.session_state.nexus_ai:
-        # Clear voice text after processing
-        if st.session_state.voice_text:
-            st.session_state.voice_text = ""
-        
-        # Process input using NexusAI backend
-        with st.spinner("Processing with NexusAI..."):
-            response, should_exit = st.session_state.nexus_ai.process_input(final_input)
-        
-        if should_exit:
-            st.warning("Assistant requested shutdown.")
-            st.session_state.nexus_ai.shutdown()
-        
-        st.rerun()
+    # Chat history display
+    st.subheader("💬 Conversation History")
 
-    # Display conversation
-    if st.session_state.nexus_ai and st.session_state.nexus_ai.conversation_history:
-        st.markdown("### 💭 Conversation")
-        for msg in st.session_state.nexus_ai.conversation_history[-10:]:  # Show last 10 messages
-            if msg["role"] == "User":
+    # Create a container for chat messages
+    chat_container = st.container()
+
+    with chat_container:
+        if st.session_state.chat_history:
+            # Show messages in reverse order (newest first)
+            # Show last 10 messages
+            for message in reversed(st.session_state.chat_history[-10:]):
+                message_class = "user-message" if message['type'] == 'user' else "assistant-message"
+                icon = "👤" if message['type'] == 'user' else "🤖"
+
                 st.markdown(f"""
-                    <div class="chat-message user-message">
-                        <strong>👤 You</strong> <small>({msg['time']})</small><br>
-                        {msg['message']}
-                    </div>
+                <div class="chat-message {message_class}">
+                    <strong>{icon} {message['type'].title()}</strong> 
+                    <span style="float: right; font-size: 0.8rem; opacity: 0.7;">{message['timestamp']}</span>
+                    <br>
+                    {message['message']}
+                </div>
                 """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                    <div class="chat-message assistant-message">
-                        <strong>🤖 Nexus</strong> <small>({msg['time']})</small><br>
-                        {msg['message']}
-                    </div>
-                """, unsafe_allow_html=True)
-    
-    # Auto-refresh for listening state timeout
-    if st.session_state.nexus_ai and st.session_state.nexus_ai.is_listening:
-        # Auto-reset listening state after 10 seconds (simulated)
-        if st.session_state.listening_timeout is None:
-            st.session_state.listening_timeout = time.time() + 10
-        elif time.time() > st.session_state.listening_timeout:
-            st.session_state.nexus_ai.reset_listening_state()
-            st.session_state.listening_timeout = None
+        else:
+            st.markdown("""
+            <div class="chat-message assistant-message">
+                <strong>🤖 Assistant</strong>
+                <br>
+                Ready for your commands! Click the voice button above or type below.
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Bottom section with text input and buttons
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # Create columns for the bottom section
+    col1, col2, col3 = st.columns([6, 1, 1])
+
+    with col1:
+        # Text input for chat
+        text_input = st.text_input(
+            "Type your message here...",
+            key="text_input",
+            placeholder="Type your command or question here...",
+            label_visibility="collapsed"
+        )
+
+        # Process text input
+        if text_input and text_input != st.session_state.last_processed_input:
+            process_text_input(text_input)
+            st.session_state.last_processed_input = text_input
+            # Clear the input field
+            st.session_state.text_input = ""
             st.rerun()
+
+    with col2:
+        # Clear history button
+        if st.button("🗑️ Clear", help="Clear conversation history"):
+            st.session_state.chat_history = []
+            st.rerun()
+
+    with col3:
+        # System info button
+        if st.button("ℹ️ Info", help="Show system information"):
+            system_info = get_system_info()
+            st.sidebar.json(system_info)
+            st.sidebar.success("System information displayed!")
+
 
 if __name__ == "__main__":
     main()
