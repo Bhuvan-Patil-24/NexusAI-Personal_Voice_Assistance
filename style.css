@@ -1,0 +1,358 @@
+/* Reset and global styles */
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+/* Global dark theme */
+.stApp {
+    background-color: #171717;
+    color: #2187e7;
+}
+
+/* Header styling */
+.main-header {
+    text-align: center;
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #2187e7;
+    text-shadow: 0 0 20px #2187e7;
+    margin-bottom: 2rem;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Main animation container */
+#main {
+    display: table;
+    height: 400px;
+    width: 100%;
+    margin: 2rem 0;
+}
+
+#myCircle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+#mainCircle {
+    position: relative;
+    max-width: 300px;
+    max-height: 300px;
+    margin: auto;
+}
+
+#mainContent {
+    position: absolute;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+#mainText {
+    visibility: hidden;
+    text-align: center;
+    vertical-align: middle;
+    margin-top: 50%;
+    transform: translateY(-50%);
+    color: #ccc;
+    animation: fade 3s infinite linear;
+    font-size: 50px;
+}
+
+/* Circle animations */
+.circle {
+    background-color: rgba(0, 0, 0, 0);
+    opacity: .9;
+    border-radius: 300px;
+    box-shadow: 0 0 75px #2187e7;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    -webkit-animation: spinPulse 2s infinite ease-in-out;
+    animation: spinPulse 2s infinite ease-in-out;
+}
+
+.circle1 {
+    background-color: rgba(0, 0, 0, 0);
+    border: 5px solid rgba(0, 183, 229, 0.9);
+    opacity: .9;
+    border-left: 5px solid rgba(0, 0, 0, 0);
+    border-right: 5px solid rgba(0, 0, 0, 0);
+    border-radius: 250px;
+    box-shadow: 0 0 100px #2187e7;
+    width: 250px;
+    height: 250px;
+    margin: 0 auto;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    -webkit-animation: spinoffPulse 4s infinite linear;
+    animation: spinoffPulse 4s infinite linear;
+}
+
+/* Listening state modifications */
+.circle.listening {
+    box-shadow: 0 0 75px #ff6b6b;
+    -webkit-animation: spinPulse 0.8s infinite ease-in-out;
+    animation: spinPulse 0.8s infinite ease-in-out;
+}
+
+.circle1.listening {
+    border: 5px solid rgba(255, 107, 107, 0.9);
+    box-shadow: 0 0 100px #ff6b6b;
+    -webkit-animation: spinoffPulse 2s infinite linear;
+    animation: spinoffPulse 2s infinite linear;
+}
+
+/* Keyframes for animations */
+@-webkit-keyframes spinPulse {
+    0% {
+        transform: scale(1.1);
+    }
+
+    70% {
+        transform: scale(0.98);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@-webkit-keyframes spinoffPulse {
+    0% {
+        -webkit-transform: rotate(0deg) scale(1);
+    }
+
+    10% {
+        -webkit-transform: rotate(90deg);
+    }
+
+    20% {
+        -webkit-transform: rotate(-90deg) scale(1.05);
+    }
+
+    40% {
+        -webkit-transform: rotate(180deg) scale(0.9);
+    }
+
+    70% {
+        -webkit-transform: rotate(-180deg) scale(1.05);
+    }
+
+    100% {
+        -webkit-transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes spinPulse {
+    0% {
+        transform: scale(1.1);
+    }
+
+    70% {
+        transform: scale(0.98);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes spinoffPulse {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    10% {
+        transform: rotate(90deg);
+    }
+
+    20% {
+        transform: rotate(-90deg) scale(1.05);
+    }
+
+    40% {
+        transform: rotate(180deg) scale(0.9);
+    }
+
+    70% {
+        transform: rotate(-180deg) scale(1.05);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes fade {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Loading bars animation */
+.bars {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+@-webkit-keyframes loadbars {
+    0% {
+        height: 10px;
+        margin-top: 25px;
+    }
+
+    50% {
+        height: 50px;
+        margin-top: 0px;
+    }
+
+    100% {
+        height: 10px;
+        margin-top: 25px;
+    }
+}
+
+.bars li {
+    background-color: #2187e7;
+    width: 10px;
+    height: 10px;
+    float: right;
+    margin-right: 5px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.bars.listening li {
+    background-color: #ff6b6b;
+}
+
+.bars li:first-child {
+    -webkit-animation: loadbars 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) infinite 0s;
+    animation: loadbars 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) infinite 0s;
+}
+
+.bars li:nth-child(2) {
+    -webkit-animation: loadbars 0.6s ease-in-out infinite -0.2s;
+    animation: loadbars 0.6s ease-in-out infinite -0.2s;
+}
+
+.bars li:nth-child(3) {
+    -webkit-animation: loadbars 0.6s ease-in-out infinite -0.4s;
+    animation: loadbars 0.6s ease-in-out infinite -0.4s;
+}
+
+.bars li:nth-child(4) {
+    -webkit-animation: loadbars 0.6s ease-in-out infinite -0.6s;
+    animation: loadbars 0.6s ease-in-out infinite -0.6s;
+}
+
+.bars li:nth-child(5) {
+    -webkit-animation: loadbars 0.6s ease-in-out infinite -0.8s;
+    animation: loadbars 0.6s ease-in-out infinite -0.8s;
+}
+
+/* Status indicator - removed */
+
+/* Button styling */
+.stButton>button {
+    background: linear-gradient(45deg, #2187e7, #0066cc);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 135, 231, 0.4);
+}
+
+/* Text input styling */
+.stTextInput>div>div>input {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 2px solid #2187e7;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Chat message styling */
+.chat-message {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border-radius: 15px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-left: 4px solid #2187e7;
+}
+
+.user-message {
+    background: linear-gradient(135deg, #2187e7, #0066cc);
+    border-left: 4px solid #0066cc;
+    margin-left: 2rem;
+    color: white;
+}
+
+.assistant-message {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border-left: 4px solid #2187e7;
+    margin-right: 2rem;
+    color: #ffffff;
+}
+
+/* Hide streamlit elements */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-header {
+        font-size: 2.5rem;
+    }
+
+    #mainCircle {
+        max-width: 250px;
+        max-height: 250px;
+    }
+
+    .circle {
+        width: 250px;
+        height: 250px;
+    }
+
+    .circle1 {
+        width: 200px;
+        height: 200px;
+        top: 20px;
+        left: 20px;
+    }
+}
