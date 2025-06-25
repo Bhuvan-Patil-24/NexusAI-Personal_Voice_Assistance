@@ -201,10 +201,24 @@ def main():
                 <div class="circle {listening_class}"></div>
                 <div class="circle1 {listening_class}"></div>
                 <div id="mainContent">
-                    <ul class="bars {listening_class}">
-                        <li></li>
-                        <li></li>
-                    </ul>
+                        <ul class="bars one {listening_class}">
+                            <li></li>
+                            <li></li>
+                        </ul>
+                        <ul class="bars two {listening_class}">
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
+                        <ul class="bars three {listening_class}">
+                            <li></li>
+                            <li></li>
+                        </ul>
+                        <ul class="bars four {listening_class}">
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
                 </div>
             </div>
         </div>

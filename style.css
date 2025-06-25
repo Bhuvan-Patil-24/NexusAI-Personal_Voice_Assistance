@@ -205,14 +205,29 @@
 .bars {
     position: absolute;
     z-index: 3;
-    left: 50%;
-    top: 50%;
     transform: translate(-50%, -50%);
     width: 60px;
     height: 60px;
     list-style: none;
     margin: 0;
     padding: 0;
+}
+
+.one{
+    left: 40%;
+    top: 50%;
+}
+.two{
+    left: 45%;
+    top: 30%;
+}
+.three{
+    left: 50%;
+    top: 55%;
+}
+.four{
+    left: 55%;
+    top: 45%;
 }
 
 @-webkit-keyframes loadbars {
@@ -237,7 +252,7 @@
     width: 10px;
     height: 10px;
     float: right;
-    margin-right: 5px;
+    margin-right: 25px;
     box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
 }
 
