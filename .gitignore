@@ -1,3 +1,4 @@
 myenv/
 nexus_ai_data/
 __pycache__
+config.py

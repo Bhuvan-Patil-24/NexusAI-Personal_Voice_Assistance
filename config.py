@@ -60,3 +60,6 @@ JOKES = [
     "Why did the tomato turn red? Because it saw the salad dressing!",
     "Why did the math book look so sad? Because it had too many problems!"
 ]
+
+# API Keys
+GEMINI_API_KEY = "AIzaSyA01Il4_89uEM9CRFeSnTfRz2MCfmLIFMY"
