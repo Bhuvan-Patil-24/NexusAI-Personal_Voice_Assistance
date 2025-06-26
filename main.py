@@ -91,30 +91,12 @@ def handle_wake_detection(audio_input):
 
         # Reset listening state after a delay
         def reset_listening():
+            print("Thread started... waiting to reset")
             time.sleep(10)
             st.session_state.is_listening = False
+            print("Reset complete")
 
         Thread(target=reset_listening, daemon=True).start()
-
-
-def run():
-    while st.session_state.running:
-        try:
-            # Listen for input
-            audio_input = st.session_state.audio_handler.listen()
-
-            if audio_input:
-                handle_wake_detection(audio_input)
-
-        except KeyboardInterrupt:
-            print("\nShutting down NexusAI...")
-            shutdown()
-            break
-        except Exception as e:
-            print(f"Error in main loop: {e}")
-            # traceback.print_exc()
-            st.session_state.audio_handler.speak(
-                "Sorry, I encountered an error. Please try again.")
 
 
 def shutdown():
@@ -132,16 +114,14 @@ def shutdown():
 
 
 def listen_for_voice():
-    if st.session_state.nexus_initialized and st.session_state.running:
+    while st.session_state.nexus_initialized and st.session_state.running:
         try:
-            st.session_state.is_listening = True
-
             # Listen for audio input
             audio_input = st.session_state.audio_handler.listen()
 
             if audio_input:
                 # Check for wake word or if already listening
-                if st.session_state.wake_word in audio_input.lower():
+                if st.session_state.wake_word in audio_input.lower() or st.session_state.is_listening:
                     # Add user message
                     st.session_state.chat_history.append({
                         'type': 'user',
@@ -167,13 +147,30 @@ def listen_for_voice():
                         print(f"Error with text-to-speech: {e}")
 
                     if should_exit:
-                        st.session_state.running = False
+                        shutdown()
                         st.success("NexusAI has been shut down.")
 
+                    # Set listening state for follow-up commands
+                    st.session_state.is_listening = True
+
+                    # Reset listening state after a delay
+                    def reset_listening():
+                        print("Thread started... waiting to reset")
+                        time.sleep(10)
+                        st.session_state.is_listening = False
+                        print("Reset complete")
+
+                    Thread(target=reset_listening, daemon=True).start()
+
         except Exception as e:
-            st.error(f"Error with voice recognition: {e}")
-        finally:
-            st.session_state.is_listening = False
+            print(f"Error in Listening: {e}")
+            # traceback.print_exc()
+            st.session_state.audio_handler.speak(
+                "Sorry, I encountered an error. Please try again.")
+        except KeyboardInterrupt:
+            print("\nShutting down NexusAI...")
+            shutdown()
+            break
 
 
 def process_text_input(text_input):
@@ -247,7 +244,7 @@ def main():
 
     # Show loading animation while initializing
     if not st.session_state.nexus_initialized:
-    # Initialize components
+        # Initialize components
         if not initialize_nexus_components():
             st.stop()
 
@@ -258,7 +255,7 @@ def main():
     listening_class = "listening" if st.session_state.is_listening else ""
     # Main header
     st.markdown('<h1 class="main-header">NexusAI</h1>',
-                    unsafe_allow_html=True)
+                unsafe_allow_html=True)
 
     # Central animation
     # load_html("animation.html")
@@ -299,25 +296,6 @@ def main():
     except Exception as e:
         print(f"Error with text-to-speech: {e}")
 
-    try:
-        run()
-    except KeyboardInterrupt:
-        shutdown()
-        
-
-    # Voice listening controls
-    col_left, col_center, col_right = st.columns([1, 2, 1])
-
-    with col_center:
-        if st.session_state.voice_listening_enabled:
-            if st.button("🎤 Listen for Voice Command", key="voice_btn", help="Click to listen for voice commands"):
-                listen_for_voice()
-                st.rerun()
-        else:
-            if st.button("🔄 Restart Voice Assistant", key="restart_btn", help="Restart the voice assistant"):
-                st.session_state.voice_listening_enabled = True
-                st.rerun()
-
     # Chat history display
     st.subheader("💬Conversation")
 
@@ -345,7 +323,7 @@ def main():
             <div class="chat-message assistant-message">
                 <strong>🤖 Assistant</strong>
                 <br>
-                Ready for your commands! Click the voice button above or type below.
+                Say "Nexus" to wake me up...
             </div>
             """, unsafe_allow_html=True)
 
@@ -358,6 +336,7 @@ def main():
     with col1:
         # Text input for chat
         text_input = st.text_input(
+            "Chat with Nexus..",
             key="text_input",
             placeholder="Type your command or question here...",
             label_visibility="collapsed"
@@ -382,8 +361,9 @@ def main():
         if st.button("System-Info", help="Show system information"):
             system_info = get_system_info()
             st.sidebar.json(system_info)
-            st.sidebar.success("System information displayed!")
+            st.rerun()
 
+    listen_for_voice()
 
 if __name__ == "__main__":
     main()
