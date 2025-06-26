@@ -23,15 +23,20 @@ st.set_page_config(
 )
 
 # Custom CSS for modern dark theme with integrated animation
-# Load the CSS file
 
 
-def local_css(file_name):
+def load_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
-local_css("style.css")
+def load_html(file_name):
+    with open(file_name) as f:
+        st.markdown(f"""{f.read()}""", unsafe_allow_html=True)
+
+
+# Load the CSS file
+load_css("style.css")
 
 # Initialize session state variables
 
@@ -197,38 +202,9 @@ def main():
                 unsafe_allow_html=True)
 
     # Central animation
-    st.markdown(f"""
-    <div id="main">
-        <div id="myCircle">
-            <div id="mainCircle">
-                <div class="circle {listening_class}"></div>
-                <div class="circle1 {listening_class}"></div>
-                <div id="mainContent">
-                    <ul class="bars one {listening_class}">
-                        <li></li>
-                        <li></li>
-                    </ul>
-                    <ul class="bars two {listening_class}">
-                        <li></li>
-                        <li></li>
-                        <li></li>
-                    </ul>
-                    <ul class="bars three {listening_class}">
-                        <li></li>
-                        <li></li>
-                    </ul>
-                    <ul class="bars four {listening_class}">
-                        <li></li>
-                        <li></li>
-                        <li></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    load_html("animation.html")
 
-    welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command, or type your message below."
+    welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up."
 
     try:
         st.session_state.audio_handler.speak(welcome_msg)
