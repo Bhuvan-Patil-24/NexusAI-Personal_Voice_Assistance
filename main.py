@@ -36,7 +36,7 @@ def load_html(file_name):
 
 
 # Load the CSS file
-load_css("style.css")
+load_css("css/style.css")
 
 # Initialize session state variables
 
@@ -152,13 +152,11 @@ def listen_for_voice():
 
                     # Set listening state for follow-up commands
                     st.session_state.is_listening = True
-
+                    st.rerun()
                     # Reset listening state after a delay
                     def reset_listening():
-                        print("Thread started... waiting to reset")
                         time.sleep(10)
                         st.session_state.is_listening = False
-                        print("Reset complete")
 
                     Thread(target=reset_listening, daemon=True).start()
 
