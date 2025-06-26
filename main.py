@@ -5,10 +5,10 @@ from threading import Thread
 # Import your existing modules
 try:
     from config import WAKE_WORD
-    from nlp_processor import NLPProcessor
-    from data_manager import DataManager
-    from audio_handler import AudioHandler
-    from command_processor import CommandProcessor
+    from components.nlp_processor import NLPProcessor
+    from components.data_manager import DataManager
+    from components.audio_handler import AudioHandler
+    from components.command_processor import CommandProcessor
 except ImportError as e:
     st.error(f"Missing required module: {e}")
     st.error("Please install missing packages and ensure all modules are available.")

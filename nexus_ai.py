@@ -1,10 +1,10 @@
 import time
 from threading import Thread
 from config import WAKE_WORD
-from nlp_processor import NLPProcessor
-from data_manager import DataManager
-from audio_handler import AudioHandler
-from command_processor import CommandProcessor
+from components.nlp_processor import NLPProcessor
+from components.data_manager import DataManager
+from components.audio_handler import AudioHandler
+from components.command_processor import CommandProcessor
 # import traceback
 
 class NexusAI:
@@ -58,6 +58,7 @@ class NexusAI:
                 
                 if audio_input:
                     self.handle_wake_detection(audio_input)
+                    print(self.get_system_info())
                 
             except KeyboardInterrupt:
                 print("\nShutting down NexusAI...")
@@ -100,6 +101,7 @@ def main():
         assistant = NexusAI()
         
         try:
+            print(assistant.get_system_info())
             assistant.run()
         except KeyboardInterrupt:
             assistant.shutdown()
