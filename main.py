@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 from datetime import datetime
-
+from threading import Thread
 # Import your existing modules
 try:
     from config import WAKE_WORD
@@ -24,16 +24,19 @@ st.set_page_config(
 
 # Custom CSS for modern dark theme with integrated animation
 # Load the CSS file
+
+
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+
 local_css("style.css")
 
-
 # Initialize session state variables
+
+
 def initialize_session_state():
-    """Initialize session state variables"""
     if 'nexus_initialized' not in st.session_state:
         st.session_state.nexus_initialized = False
     if 'chat_history' not in st.session_state:
@@ -49,8 +52,8 @@ def initialize_session_state():
 
 
 def initialize_nexus_components():
-    """Initialize NexusAI components"""
     try:
+        print("Initializing NexusAI components...")
         with st.spinner("Initializing NexusAI components..."):
             st.session_state.data_manager = DataManager()
             st.session_state.nlp_processor = NLPProcessor()
@@ -60,6 +63,7 @@ def initialize_nexus_components():
                 st.session_state.data_manager
             )
             st.session_state.nexus_initialized = True
+            print("NexusAI initialization complete!")
             return True
     except Exception as e:
         st.error(f"Failed to initialize NexusAI: {e}")
@@ -67,7 +71,6 @@ def initialize_nexus_components():
 
 
 def listen_for_voice():
-    """Listen for voice input"""
     if st.session_state.nexus_initialized and st.session_state.voice_listening_enabled:
         try:
             st.session_state.is_listening = True
@@ -193,7 +196,7 @@ def main():
     st.markdown('<h1 class="main-header">NexusAI</h1>',
                 unsafe_allow_html=True)
 
-    # Central animation with new design
+    # Central animation
     st.markdown(f"""
     <div id="main">
         <div id="myCircle">
@@ -201,24 +204,24 @@ def main():
                 <div class="circle {listening_class}"></div>
                 <div class="circle1 {listening_class}"></div>
                 <div id="mainContent">
-                        <ul class="bars one {listening_class}">
-                            <li></li>
-                            <li></li>
-                        </ul>
-                        <ul class="bars two {listening_class}">
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                        </ul>
-                        <ul class="bars three {listening_class}">
-                            <li></li>
-                            <li></li>
-                        </ul>
-                        <ul class="bars four {listening_class}">
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                        </ul>
+                    <ul class="bars one {listening_class}">
+                        <li></li>
+                        <li></li>
+                    </ul>
+                    <ul class="bars two {listening_class}">
+                        <li></li>
+                        <li></li>
+                        <li></li>
+                    </ul>
+                    <ul class="bars three {listening_class}">
+                        <li></li>
+                        <li></li>
+                    </ul>
+                    <ul class="bars four {listening_class}">
+                        <li></li>
+                        <li></li>
+                        <li></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -226,7 +229,7 @@ def main():
     """, unsafe_allow_html=True)
 
     welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command, or type your message below."
-    
+
     try:
         st.session_state.audio_handler.speak(welcome_msg)
     except Exception as e:
