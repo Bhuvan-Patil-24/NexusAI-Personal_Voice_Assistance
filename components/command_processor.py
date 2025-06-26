@@ -169,6 +169,7 @@ class CommandProcessor:
                 response = f"{time_greeting}. I hope I can help brighten your day. What can I do for you?"
             else:
                 response = f"{time_greeting}! How can I assist you today?"
+            return response, True
         
         elif intent == 'reminder':
             reminder_text = params.get('reminder_text', '')

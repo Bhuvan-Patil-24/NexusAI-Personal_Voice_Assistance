@@ -359,7 +359,6 @@ def main():
         if st.button("System-Info", help="Show system information"):
             system_info = get_system_info()
             st.sidebar.json(system_info)
-            st.rerun()
 
     listen_for_voice()
 
