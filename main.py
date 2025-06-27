@@ -84,7 +84,7 @@ def shutdown():
 
     st.session_state.audio_handler.speak("Shutting Down.")
     print("NexusAI shutdown complete.")
-    st.stop()
+
 
 
 def listen_for_voice():
@@ -96,23 +96,9 @@ def listen_for_voice():
             if audio_input:
                 # Check for wake word or if already listening
                 if st.session_state.wake_word in audio_input.lower() or st.session_state.is_listening:
-                    # Add user message
-                    # st.session_state.chat_history.append({
-                    #     'type': 'user',
-                    #     'message': audio_input,
-                    #     'timestamp': datetime.now().strftime("%H:%M:%S")
-                    # })
-
                     # Process command
                     response, should_exit = st.session_state.command_processor.process_command(
                         audio_input)
-
-                    # Add assistant response
-                    # st.session_state.chat_history.append({
-                    #     'type': 'assistant',
-                    #     'message': response,
-                    #     'timestamp': datetime.now().strftime("%H:%M:%S")
-                    # })
 
                     # Speak response
                     try:
@@ -126,14 +112,6 @@ def listen_for_voice():
 
                     # Set listening state for follow-up commands
                     st.session_state.is_listening = True
-                    
-                    # Reset listening state after a delay
-
-                    # def reset_listening():
-                    #     time.sleep(10)
-                    #     st.session_state.is_listening = False
-
-                    # Thread(target=reset_listening, daemon=True).start()
 
         except Exception as e:
             print(f"Error in Listening: {e}")
@@ -145,42 +123,6 @@ def listen_for_voice():
             shutdown()
             break
 
-'''
-def process_text_input(text_input):
-    """Process text input from the chat box"""
-    if text_input.strip() and st.session_state.nexus_initialized:
-        try:
-            # Add user message
-            st.session_state.chat_history.append({
-                'type': 'user',
-                'message': text_input,
-                'timestamp': datetime.now().strftime("%H:%M:%S")
-            })
-
-            # Process command
-            response, should_exit = st.session_state.command_processor.process_command(
-                text_input)
-
-            # Add assistant response
-            st.session_state.chat_history.append({
-                'type': 'assistant',
-                'message': response,
-                'timestamp': datetime.now().strftime("%H:%M:%S")
-            })
-
-            # Speak response
-            try:
-                st.session_state.audio_handler.speak(response)
-            except Exception as e:
-                print(f"Error with text-to-speech: {e}")
-
-            if should_exit:
-                st.session_state.running = False
-                st.success("NexusAI has been shut down.")
-
-        except Exception as e:
-            st.error(f"Error processing text input: {e}")
-    '''
 
 def get_system_info():
     try:
@@ -219,7 +161,7 @@ def main():
 
         # Refresh to show main UI
         st.rerun()
-
+#--------(yaha se rerun)
     # Determine animation classes - now based on speaking instead of listening
     speaking_class = "speaking" if st.session_state.is_speaking else ""
 
@@ -256,79 +198,17 @@ def main():
                 </div>
             </div>
         </div>""", unsafe_allow_html=True)
-
+#------(yaha tak)
     # Welcome message (only once)
     if not st.session_state.get('welcome_spoken', False):
         welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up."
-        st.session_state.is_speaking = True
         st.session_state.audio_handler.speak(welcome_msg)
+        # st.session_state.is_speaking = False
         st.session_state.welcome_spoken = True
+        # st.rerun()
 
-    '''
-    # Bottom section with text input and system info button
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-    col = st.columns([1, 2, 1])[1]
-
-    with col:
-        # Text input for chat
-        if 'input_key' not in st.session_state:
-            st.session_state.input_key = 0
-
-        text_input = st.text_input(
-            "Chat with Nexus..",
-            key=f"text_input_{st.session_state.input_key}",
-            placeholder="Type your command or question here...",
-            label_visibility="collapsed"
-        )
-
-        # Process text input
-        if text_input and text_input != st.session_state.last_processed_input:
-            process_text_input(text_input)
-            # Increment key to create new widget and clear input
-            st.session_state.input_key += 1
-            st.rerun()
-
-    # Chat history display
-    st.subheader("💬Conversation")
-
-    # Create a container for chat messages
-    chat_container = st.container()
-
-    with chat_container:
-        if st.session_state.chat_history:
-            # Show messages in reverse order (newest first)
-            # Show last 10 messages
-            for message in reversed(st.session_state.chat_history[-10:]):
-                message_class = "user-message" if message['type'] == 'user' else "assistant-message"
-                icon = "👤" if message['type'] == 'user' else "🤖"
-
-                st.markdown(f"""
-                <div class="chat-message {message_class}">
-                    <strong>{icon} {message['type'].title()}</strong> 
-                    <span style="float: right; font-size: 0.8rem; opacity: 0.7;">{message['timestamp']}</span>
-                    <br>
-                    {message['message']}
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="chat-message assistant-message">
-                <strong>🤖 Assistant</strong>
-                <br>
-                Say "Nexus" to wake me up...
-            </div>
-            """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # Show detailed info in expandable section
-    with st.expander("System Information"):
-        st.json(get_system_info())
-    '''     
     listen_for_voice()
 
 
 if __name__ == "__main__":
     main()
-    print("\nEND")
