@@ -97,22 +97,22 @@ def listen_for_voice():
                 # Check for wake word or if already listening
                 if st.session_state.wake_word in audio_input.lower() or st.session_state.is_listening:
                     # Add user message
-                    st.session_state.chat_history.append({
-                        'type': 'user',
-                        'message': audio_input,
-                        'timestamp': datetime.now().strftime("%H:%M:%S")
-                    })
+                    # st.session_state.chat_history.append({
+                    #     'type': 'user',
+                    #     'message': audio_input,
+                    #     'timestamp': datetime.now().strftime("%H:%M:%S")
+                    # })
 
                     # Process command
                     response, should_exit = st.session_state.command_processor.process_command(
                         audio_input)
 
                     # Add assistant response
-                    st.session_state.chat_history.append({
-                        'type': 'assistant',
-                        'message': response,
-                        'timestamp': datetime.now().strftime("%H:%M:%S")
-                    })
+                    # st.session_state.chat_history.append({
+                    #     'type': 'assistant',
+                    #     'message': response,
+                    #     'timestamp': datetime.now().strftime("%H:%M:%S")
+                    # })
 
                     # Speak response
                     try:
@@ -126,14 +126,14 @@ def listen_for_voice():
 
                     # Set listening state for follow-up commands
                     st.session_state.is_listening = True
-                    st.rerun()
+                    
                     # Reset listening state after a delay
 
-                    def reset_listening():
-                        time.sleep(10)
-                        st.session_state.is_listening = False
+                    # def reset_listening():
+                    #     time.sleep(10)
+                    #     st.session_state.is_listening = False
 
-                    Thread(target=reset_listening, daemon=True).start()
+                    # Thread(target=reset_listening, daemon=True).start()
 
         except Exception as e:
             print(f"Error in Listening: {e}")
@@ -145,7 +145,7 @@ def listen_for_voice():
             shutdown()
             break
 
-
+'''
 def process_text_input(text_input):
     """Process text input from the chat box"""
     if text_input.strip() and st.session_state.nexus_initialized:
@@ -180,7 +180,7 @@ def process_text_input(text_input):
 
         except Exception as e:
             st.error(f"Error processing text input: {e}")
-
+    '''
 
 def get_system_info():
     try:
@@ -260,9 +260,11 @@ def main():
     # Welcome message (only once)
     if not st.session_state.get('welcome_spoken', False):
         welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up."
+        st.session_state.is_speaking = True
         st.session_state.audio_handler.speak(welcome_msg)
         st.session_state.welcome_spoken = True
 
+    '''
     # Bottom section with text input and system info button
     st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -323,9 +325,10 @@ def main():
     # Show detailed info in expandable section
     with st.expander("System Information"):
         st.json(get_system_info())
-            
+    '''     
     listen_for_voice()
 
 
 if __name__ == "__main__":
     main()
+    print("\nEND")
