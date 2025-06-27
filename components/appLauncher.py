@@ -113,20 +113,3 @@ class WindowsAppLauncher:
             pass
         return False
 
-
-# Usage examples
-if __name__ == "__main__":
-    launcher = WindowsAppLauncher()
-
-    print("Windows App Launcher")
-    print("=" * 30)
-
-    while True:
-        app_name = input("\n(type 'quit' to exit)\nEnter app name: ").strip()
-        if app_name.lower() in ['quit', 'exit', 'q']:
-            print("Goodbye!")
-            break
-        elif app_name:
-            launcher.open_app(app_name)
-        else:
-            print(f"Could not find or open: {app_name}")

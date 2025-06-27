@@ -3,12 +3,14 @@ import wikipedia
 import webbrowser
 import random
 import re
-from config import WAKE_WORD, WEBSITES, JOKES
+from config import WAKE_WORD, WEBSITES, JOKES, APPS
+from components.appLauncher import WindowsAppLauncher
 
 class CommandProcessor:
     def __init__(self, nlp_processor, data_manager):
         self.nlp_processor = nlp_processor
         self.data_manager = data_manager
+        self.app_launcher = WindowsAppLauncher()
     
     def get_current_time(self):
         now = datetime.datetime.now()
@@ -36,14 +38,19 @@ class CommandProcessor:
             print(f"Error searching Wikipedia: {e}")
             return "I couldn't find information about that topic on Wikipedia."
     
-    def open_website(self, site):
-        if site in WEBSITES:
-            webbrowser.open(WEBSITES[site])
-            return f"Opening {site.title()}"
+    def open_app_or_site(self, name):
+        if name in WEBSITES:
+            webbrowser.open(WEBSITES[name])
+            return f"Opening {name.title()}"
+        elif name in APPS:
+            self.app_launcher.open_app(APPS[name])
+            return f"Opening {name.title()}"
+        elif self.app_launcher.open_app(name):
+            return f"Opening {name.title()}"
         else:
             # Try to open as a general search
-            webbrowser.open(f"https://www.google.com/search?q={site}")
-            return f"Searching for {site} on Google"
+            webbrowser.open(f"https://www.google.com/search?q={name}")
+            return f"Searching for {name} on Google"
     
     def get_weather(self, city=""):
         """Get weather information (requires API key)"""
@@ -139,7 +146,7 @@ class CommandProcessor:
         
         elif intent == 'open':
             target = params.get('target', 'google')
-            response = self.open_website(target)
+            response = self.open_app_or_site(target)
         
         elif intent == 'weather':
             response = self.get_weather()
@@ -169,7 +176,7 @@ class CommandProcessor:
                 response = f"{time_greeting}. I hope I can help brighten your day. What can I do for you?"
             else:
                 response = f"{time_greeting}! How can I assist you today?"
-            return response, True
+            return response, False
         
         elif intent == 'reminder':
             reminder_text = params.get('reminder_text', '')

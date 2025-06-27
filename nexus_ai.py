@@ -39,16 +39,9 @@ class NexusAI:
             if should_exit:
                 self.running = False
                 return
-            
+                        
             # Set listening state for follow-up commands
             self.is_listening = True
-            
-            # Reset listening state after a delay
-            def reset_listening():
-                time.sleep(10)
-                self.is_listening = False
-            
-            Thread(target=reset_listening, daemon=True).start()
     
     def run(self):
         while self.running:
@@ -58,7 +51,6 @@ class NexusAI:
                 
                 if audio_input:
                     self.handle_wake_detection(audio_input)
-                    print(self.get_system_info())
                 
             except KeyboardInterrupt:
                 print("\nShutting down NexusAI...")
