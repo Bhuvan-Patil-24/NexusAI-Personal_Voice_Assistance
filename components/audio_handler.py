@@ -1,6 +1,6 @@
 import speech_recognition as sr
 import pyttsx3
-from nexus_ai_data.config import SPEECH_RATE, SPEECH_VOLUME
+from components.config import SPEECH_RATE, SPEECH_VOLUME
 
 class AudioHandler:
     def __init__(self):
@@ -34,7 +34,7 @@ class AudioHandler:
             with self.microphone as source:
                 print("Listening...")
                 self.recognizer.pause_threshold = 1
-                self.recognizer.energy_threshold = 300
+                self.recognizer.energy_threshold = 100
                 # Adjust for ambient noise
                 self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
                 # Listen for audio

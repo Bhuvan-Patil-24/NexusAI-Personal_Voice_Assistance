@@ -2,7 +2,7 @@ import json
 import pickle
 import datetime
 from collections import Counter
-from nexus_ai_data.config import DATA_DIR, HISTORY_FILE, PREFERENCES_FILE, MEMORY_FILE
+from components.config import DATA_DIR, HISTORY_FILE, PREFERENCES_FILE, MEMORY_FILE
 
 class DataManager:
     def __init__(self):

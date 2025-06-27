@@ -8,7 +8,7 @@ from textblob import TextBlob
 import spacy
 import difflib
 import re
-from nexus_ai_data.config import NLTK_DOWNLOADS, SPACY_MODEL, INTENT_PATTERNS, EMOTION_PATTERNS
+from components.config import NLTK_DOWNLOADS, SPACY_MODEL, INTENT_PATTERNS, EMOTION_PATTERNS
 
 class NLPProcessor:
     def __init__(self):

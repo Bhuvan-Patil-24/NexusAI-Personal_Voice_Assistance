@@ -3,10 +3,12 @@ import wikipedia
 import webbrowser
 import random
 import re
-from nexus_ai_data.config import WAKE_WORD, WEBSITES, JOKES, APPS
+import winsound
+from components.config import WAKE_WORD, WEBSITES, JOKES, APPS
 from components.appLauncher import WindowsAppLauncher
 from reminders.reminder_sys import ReminderSystem
 from components.summarizer import GeminiSummarizer
+from components.audio_handler import AudioHandler
 
 
 class CommandProcessor:
@@ -16,6 +18,19 @@ class CommandProcessor:
         self.app_launcher = WindowsAppLauncher()
         self.reminder_system = ReminderSystem()
         self.summarizer = GeminiSummarizer()
+        self.audio_handler = AudioHandler()
+
+        if self.audio_handler:
+            self.reminder_system.set_reminder_callback(
+                self._handle_reminder_trigger)
+
+    def _handle_reminder_trigger(self, reminder_message):
+        """Handle when a reminder is triggered"""
+        print(reminder_message)
+        if self.audio_handler:
+            winsound.Beep(1000, 1000)  # frequency=1000Hz, duration=500ms
+            # Use your existing audio handler to speak the reminder
+            self.audio_handler.speak(reminder_message)
 
     def get_current_time(self):
         now = datetime.datetime.now()
@@ -30,21 +45,21 @@ class CommandProcessor:
     def search_for(self, query):
         try:
             # Get summary from Wikipedia
-            result = wikipedia.summary(query, sentences=2)
+            result = wikipedia.summary(query, sentences=1)
             return result
         except wikipedia.exceptions.DisambiguationError as e:
             # If there are multiple results, pick the first one
             try:
-                result = wikipedia.summary(e.options[0], sentences=2)
+                result = wikipedia.summary(e.options[0], sentences=1)
                 return result
             except:
-                result = self.summarizer.summarize(query)
-                if result:
-                    return result
-                else:
-                    return "I couldn't find specific information about that topic."
+                return "I am not able to find anything on wikepedia on that topic."
         except Exception as e:
-            return "I couldn't find information about that topic on Wikipedia."
+            result = self.summarizer.summarize(query)
+            if result:
+                return result
+            else:
+                return "I couldn't find specific information about that topic."
 
     def open_app_or_site(self, name):
         if name in WEBSITES:
@@ -73,9 +88,9 @@ class CommandProcessor:
             # Remove any non-mathematical characters for safety
             safe_expr = re.sub(r'[^0-9+\-*/().\s]', '', expression)
             result = eval(safe_expr)
-            return f"The result is {result}"
+            return f"The answer is {result}"
         except:
-            return "I couldn't calculate that expression. Please check your math problem."
+            return self.summarizer.calculate(expression)
 
     def process_reminder_command(self, command, params):
         """Process reminder-related commands using the reminder system"""
@@ -140,16 +155,25 @@ class CommandProcessor:
     def handle_follow_up(self, text):
         if 'last_intent' in self.data_manager.context_memory:
             last_intent = self.data_manager.context_memory['last_intent']
+            last_params = self.data_manager.context_memory.get('last_params', {})
 
-            # Check for follow-up patterns
-            follow_up_words = ['more', 'tell me more',
-                               'continue', 'explain', 'details']
-            if any(word in text.lower() for word in follow_up_words):
-                if last_intent == 'search' and 'last_params' in self.data_manager.context_memory:
-                    last_query = self.data_manager.context_memory['last_params'].get(
-                        'query', '')
-                    return f"Let me search for more information about {last_query}", True
+        # Define follow-up trigger words
+        follow_up_words = ['more', 'tell me more', 'continue', 'explain', 'details']
 
+        # Check if input matches any follow-up pattern
+        if any(word in text.lower() for word in follow_up_words):
+            # Handle follow-up for a search
+            if last_intent == 'search':
+                last_query = last_params.get('query', '')
+                if last_query:
+                    extra_info = self.search_for(last_query)
+                    return extra_info, True
+                else:
+                    return "I don't have the previous search query to continue.", True
+            else:
+                return "I'm not sure how to provide more details about that.", True
+
+        # If no follow-up detected
         return "", False
 
     def generate_contextual_response(self, intent, params, sentiment):
@@ -257,7 +281,7 @@ class CommandProcessor:
                     'who is', '').replace('how', '').strip()
                 response = self.smart_search(query, entities)
             else:
-                response = "That's an interesting question. Could you be more specific so I can help you better?"
+                return self.search_for(command), False
 
         elif intent == 'intro':
             response = "My name is Nexus, your personal voice assistant. I can help you with simple but time consuming tasks, provide information, seting reminders and much more to enhance your productivity."
