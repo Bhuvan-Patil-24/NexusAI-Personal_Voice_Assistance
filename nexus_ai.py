@@ -1,6 +1,6 @@
 import time
 from threading import Thread
-from config import WAKE_WORD
+from nexus_ai_data.config import WAKE_WORD
 from components.nlp_processor import NLPProcessor
 from components.data_manager import DataManager
 from components.audio_handler import AudioHandler

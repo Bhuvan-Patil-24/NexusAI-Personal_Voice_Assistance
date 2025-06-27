@@ -3,26 +3,31 @@ import wikipedia
 import webbrowser
 import random
 import re
-from config import WAKE_WORD, WEBSITES, JOKES, APPS
+from nexus_ai_data.config import WAKE_WORD, WEBSITES, JOKES, APPS
 from components.appLauncher import WindowsAppLauncher
+from reminders.reminder_sys import ReminderSystem
+from components.summarizer import GeminiSummarizer
+
 
 class CommandProcessor:
     def __init__(self, nlp_processor, data_manager):
         self.nlp_processor = nlp_processor
         self.data_manager = data_manager
         self.app_launcher = WindowsAppLauncher()
-    
+        self.reminder_system = ReminderSystem()
+        self.summarizer = GeminiSummarizer()
+
     def get_current_time(self):
         now = datetime.datetime.now()
         time_str = now.strftime("%I:%M %p")
-        return f"Sir, The current time is {time_str}"
-    
+        return f"The current time is {time_str}"
+
     def get_current_date(self):
         today = datetime.date.today()
         date_str = today.strftime("%B %d, %Y")
-        return f"Sir, Today is {date_str}"
-    
-    def search_wikipedia(self, query):
+        return f"Today is {date_str}"
+
+    def search_for(self, query):
         try:
             # Get summary from Wikipedia
             result = wikipedia.summary(query, sentences=2)
@@ -33,11 +38,14 @@ class CommandProcessor:
                 result = wikipedia.summary(e.options[0], sentences=2)
                 return result
             except:
-                return "I couldn't find specific information about that topic."
+                result = self.summarizer.summarize(query)
+                if result:
+                    return result
+                else:
+                    return "I couldn't find specific information about that topic."
         except Exception as e:
-            print(f"Error searching Wikipedia: {e}")
             return "I couldn't find information about that topic on Wikipedia."
-    
+
     def open_app_or_site(self, name):
         if name in WEBSITES:
             webbrowser.open(WEBSITES[name])
@@ -51,15 +59,15 @@ class CommandProcessor:
             # Try to open as a general search
             webbrowser.open(f"https://www.google.com/search?q={name}")
             return f"Searching for {name} on Google"
-    
+
     def get_weather(self, city=""):
         """Get weather information (requires API key)"""
         # This is a placeholder - you'll need to sign up for a weather API
         return "Weather feature requires an API key. Please set up OpenWeatherMap API for weather updates."
-    
+
     def tell_joke(self):
         return random.choice(JOKES)
-    
+
     def calculate_expression(self, expression):
         try:
             # Remove any non-mathematical characters for safety
@@ -68,7 +76,55 @@ class CommandProcessor:
             return f"The result is {result}"
         except:
             return "I couldn't calculate that expression. Please check your math problem."
-    
+
+    def process_reminder_command(self, command, params):
+        """Process reminder-related commands using the reminder system"""
+        command_lower = command.lower()
+
+        # Handle different reminder command patterns
+        if any(phrase in command_lower for phrase in ['remind me to', 'set reminder to', 'remember to']):
+            # Try to extract reminder text and time from params first
+            reminder_text = params.get('reminder_text', '')
+            time_str = params.get('time', '')
+
+            # If not in params, use the reminder system's natural language processing
+            if not reminder_text or not time_str:
+                success, response = self.reminder_system.process_reminder(
+                    command)
+                return response
+            else:
+                success, response = self.reminder_system.add_reminder(
+                    reminder_text, time_str)
+                return response
+
+        elif any(phrase in command_lower for phrase in ['list reminders', 'show reminders', 'my reminders']):
+            return self.reminder_system.list_reminders()
+
+        elif 'cancel reminder' in command_lower or 'delete reminder' in command_lower:
+            # Extract reminder ID if possible
+            words = command_lower.split()
+            try:
+                for word in words:
+                    if word.isdigit():
+                        reminder_id = int(word)
+                        success, response = self.reminder_system.cancel_reminder(
+                            reminder_id)
+                        return response
+                return "Please specify which reminder to cancel by its number."
+            except:
+                return "Please specify the reminder number to cancel."
+
+        else:
+            # Use the reminder system's natural language processing
+            success, response = self.reminder_system.process_reminder(
+                command)
+            return response
+
+    def cleanup(self):
+        """Cleanup method to properly close reminder system"""
+        if hasattr(self, 'reminder_system'):
+            self.reminder_system.cleanup()
+
     def smart_search(self, query, entities):
         # If entities are detected, use them to improve search
         if entities:
@@ -78,22 +134,24 @@ class CommandProcessor:
                 query = f"{query} location geography"
             elif 'ORG' in entities:  # Organization
                 query = f"{query} organization company"
-        
-        return self.search_wikipedia(query)
-    
+
+        return self.search_for(query)
+
     def handle_follow_up(self, text):
         if 'last_intent' in self.data_manager.context_memory:
             last_intent = self.data_manager.context_memory['last_intent']
-            
+
             # Check for follow-up patterns
-            follow_up_words = ['more', 'tell me more', 'continue', 'explain', 'details']
+            follow_up_words = ['more', 'tell me more',
+                               'continue', 'explain', 'details']
             if any(word in text.lower() for word in follow_up_words):
                 if last_intent == 'search' and 'last_params' in self.data_manager.context_memory:
-                    last_query = self.data_manager.context_memory['last_params'].get('query', '')
+                    last_query = self.data_manager.context_memory['last_params'].get(
+                        'query', '')
                     return f"Let me search for more information about {last_query}", True
-        
+
         return "", False
-    
+
     def generate_contextual_response(self, intent, params, sentiment):
         # Adjust response tone based on sentiment
         if sentiment == 'negative':
@@ -102,74 +160,75 @@ class CommandProcessor:
             tone_prefix = "I'm glad you're in a good mood! "
         else:
             tone_prefix = ""
-        
+
         # Store context for follow-up questions
         self.data_manager.context_memory['last_intent'] = intent
         self.data_manager.context_memory['last_params'] = params
         self.data_manager.context_memory['last_sentiment'] = sentiment
-        
+
         return tone_prefix
-    
+
     def process_command(self, command):
         original_command = command
         command = command.lower()
-        
+
         # Remove wake word if present
         if WAKE_WORD in command:
             command = command.replace(WAKE_WORD, "").strip()
-        
+
         # Check for follow-up questions first
         follow_up_response, is_follow_up = self.handle_follow_up(command)
         if is_follow_up:
             return follow_up_response, False
-        
+
         # Analyze sentiment and classify intent
         sentiment = self.nlp_processor.analyze_sentiment(command)
         intent = self.nlp_processor.classify_intent(command)
         params = self.nlp_processor.extract_parameters(command, intent)
-        
+
         # Generate contextual response prefix
-        tone_prefix = self.generate_contextual_response(intent, params, sentiment)
-        
+        tone_prefix = self.generate_contextual_response(
+            intent, params, sentiment)
+
         # Process based on classified intent
         if intent == 'time':
             response = self.get_current_time()
-        
+
         elif intent == 'date':
             response = self.get_current_date()
-        
+
         elif intent == 'search':
             query = params.get('query', 'general information')
             entities = params.get('entities', {})
             print(f"Searching for {query}...")
             response = self.smart_search(query, entities)
-        
+
         elif intent == 'open':
             target = params.get('target', 'google')
             response = self.open_app_or_site(target)
-        
+
         elif intent == 'weather':
             response = self.get_weather()
-        
+
         elif intent == 'joke':
             response = self.tell_joke()
-        
+
         elif intent == 'math':
             if 'expression' in params:
                 response = self.calculate_expression(params['expression'])
             else:
                 response = "Please provide a mathematical expression to calculate."
-        
+
         elif intent == 'greeting':
             # Personalized greeting based on time and sentiment
             hour = datetime.datetime.now().hour
             if hour < 12:
-                time_greeting = "Good morning Sir!"
+                time_greeting = "Good morning!"
             elif hour < 17:
-                time_greeting = "Good afternoon Sir!"
+                time_greeting = "Good afternoon!"
             else:
-                time_greeting = "Good evening Sir!"
-            
+                time_greeting = "Good evening!"
+
             if sentiment == 'positive':
                 response = f"{time_greeting}! You seem to be in a great mood today. How can I help you?"
             elif sentiment == 'negative':
@@ -177,15 +236,10 @@ class CommandProcessor:
             else:
                 response = f"{time_greeting}! How can I assist you today?"
             return response, False
-        
+
         elif intent == 'reminder':
-            reminder_text = params.get('reminder_text', '')
-            if reminder_text:
-                # Store reminder (in a real implementation, you'd use a database)
-                response = f"I'll remember to remind you about: {reminder_text}. Note: Full reminder system requires additional setup."
-            else:
-                response = "What would you like me to remind you about?"
-        
+            response = self.process_reminder_command(original_command, params)
+
         elif intent == 'goodbye':
             # Personalized goodbye based on interaction history
             if len(self.data_manager.conversation_history) > 5:
@@ -193,17 +247,22 @@ class CommandProcessor:
             else:
                 response = "Goodbye! Feel free to come back anytime for assistance."
             return tone_prefix + response, True
-        
+
         elif intent == 'question':
             # Handle general questions intelligently
             entities = params.get('entities', {})
             if entities or len(command.split()) > 3:
                 # Complex question - try to search for it
-                query = command.replace('what is', '').replace('who is', '').replace('how', '').strip()
+                query = command.replace('what is', '').replace(
+                    'who is', '').replace('how', '').strip()
                 response = self.smart_search(query, entities)
             else:
                 response = "That's an interesting question. Could you be more specific so I can help you better?"
-        
+
+        elif intent == 'intro':
+            response = "My name is Nexus, your personal voice assistant. I can help you with simple but time consuming tasks, provide information, seting reminders and much more to enhance your productivity."
+            return response, False
+
         # Fallback for unknown intents
         else:
             # Try to find similar commands using fuzzy matching
@@ -217,9 +276,10 @@ class CommandProcessor:
                     "I want to help, but I need a bit more context. Could you explain what you're looking for?"
                 ]
                 response = random.choice(responses)
-        
+
         # Learn from this interaction
         final_response = tone_prefix + response
-        self.data_manager.learn_from_interaction(original_command, final_response, sentiment, self.nlp_processor)
-        
+        self.data_manager.learn_from_interaction(
+            original_command, final_response, sentiment, self.nlp_processor)
+
         return final_response, False
