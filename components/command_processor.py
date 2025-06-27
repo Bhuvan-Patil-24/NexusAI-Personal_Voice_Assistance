@@ -28,7 +28,8 @@ class CommandProcessor:
         """Handle when a reminder is triggered"""
         print(reminder_message)
         if self.audio_handler:
-            winsound.Beep(1000, 1000)  # frequency=1000Hz, duration=500ms
+            for i in range(3):
+                winsound.Beep(1000, 1000)  # frequency=1000Hz, duration=1000ms
             # Use your existing audio handler to speak the reminder
             self.audio_handler.speak(reminder_message)
 
