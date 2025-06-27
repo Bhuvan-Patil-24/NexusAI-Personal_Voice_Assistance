@@ -101,7 +101,6 @@ def main():
         assistant = NexusAI()
         
         try:
-            print(assistant.get_system_info())
             assistant.run()
         except KeyboardInterrupt:
             assistant.shutdown()

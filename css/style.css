@@ -93,13 +93,13 @@
 }
 
 /* Listening state modifications */
-.circle.listening {
+.circle.speaking {
     box-shadow: 0 0 75px #ff6b6b;
     -webkit-animation: spinPulse 0.8s infinite ease-in-out;
     animation: spinPulse 0.8s infinite ease-in-out;
 }
 
-.circle1.listening {
+.circle1.speaking {
     border: 5px solid rgba(255, 107, 107, 0.9);
     box-shadow: 0 0 100px #ff6b6b;
     -webkit-animation: spinoffPulse 2s infinite linear;

@@ -30,11 +30,6 @@ def load_css(file_name):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
-def load_html(file_name):
-    with open(file_name) as f:
-        st.markdown(f"""{f.read()}""", unsafe_allow_html=True)
-
-
 # Load the CSS file
 load_css("css/style.css")
 
@@ -48,6 +43,8 @@ def initialize_session_state():
         st.session_state.chat_history = []
     if 'is_listening' not in st.session_state:
         st.session_state.is_listening = False
+    if 'is_speaking' not in st.session_state:
+        st.session_state.is_speaking = False
     if 'wake_word' not in st.session_state:
         st.session_state.wake_word = WAKE_WORD.lower()
     if 'last_processed_input' not in st.session_state:
@@ -75,30 +72,6 @@ def initialize_nexus_components():
         return False
 
 
-def handle_wake_detection(audio_input):
-    if WAKE_WORD in audio_input or st.session_state.is_listening:
-        # Process the command
-        response, should_exit = st.session_state.command_processor.process_command(
-            audio_input)
-        st.session_state.audio_handler.speak(response)
-
-        if should_exit:
-            st.session_state.running = False
-            return
-
-        # Set listening state for follow-up commands
-        st.session_state.is_listening = True
-
-        # Reset listening state after a delay
-        def reset_listening():
-            print("Thread started... waiting to reset")
-            time.sleep(10)
-            st.session_state.is_listening = False
-            print("Reset complete")
-
-        Thread(target=reset_listening, daemon=True).start()
-
-
 def shutdown():
     st.session_state.running = False
 
@@ -109,8 +82,9 @@ def shutdown():
     except Exception as e:
         print(f"Error saving data: {e}")
 
-    st.session_state.audio_handler.speak("Goodbye! Have a great day!")
+    st.session_state.audio_handler.speak("Shutting Down.")
     print("NexusAI shutdown complete.")
+    st.stop()
 
 
 def listen_for_voice():
@@ -154,6 +128,7 @@ def listen_for_voice():
                     st.session_state.is_listening = True
                     st.rerun()
                     # Reset listening state after a delay
+
                     def reset_listening():
                         time.sleep(10)
                         st.session_state.is_listening = False
@@ -232,11 +207,7 @@ def get_system_info():
 
 
 def main():
-    print("=" * 50)
-    print("🤖 NexusAI - Advanced Voice Assistant")
-    print("=" * 50)
-    print()
-
+    print("Initializing session...")
     # Initialize session state
     initialize_session_state()
 
@@ -249,35 +220,34 @@ def main():
         # Refresh to show main UI
         st.rerun()
 
-    # Determine animation classes
-    listening_class = "listening" if st.session_state.is_listening else ""
-    # Main header
-    st.markdown('<h1 class="main-header">NexusAI</h1>',
-                unsafe_allow_html=True)
+    # Determine animation classes - now based on speaking instead of listening
+    speaking_class = "speaking" if st.session_state.is_speaking else ""
 
-    # Central animation
-    # load_html("animation.html")
+    # Main header
+    st.markdown('<h1 class="main-header">NexusAI</h1>', unsafe_allow_html=True)
+
+    # Central animation - updated to show animation when speaking
     st.markdown(f"""
         <div id="main">
         <div id="myCircle">
         <div id="mainCircle">
-            <div class="circle {listening_class}"></div>
-            <div class="circle1 {listening_class}"></div>
+            <div class="circle {speaking_class}"></div>
+            <div class="circle1 {speaking_class}"></div>
             <div id="mainContent">
-                <ul class="bars one {listening_class}">
+                <ul class="bars one {speaking_class}">
                     <li></li>
                     <li></li>
                 </ul>
-                <ul class="bars two {listening_class}">
+                <ul class="bars two {speaking_class}">
                     <li></li>
                     <li></li>
                     <li></li>
                 </ul>
-                <ul class="bars three {listening_class}">
+                <ul class="bars three {speaking_class}">
                     <li></li>
                     <li></li>
                 </ul>
-                <ul class="bars four {listening_class}">
+                <ul class="bars four {speaking_class}">
                     <li></li>
                     <li></li>
                     <li></li>
@@ -287,12 +257,35 @@ def main():
             </div>
         </div>""", unsafe_allow_html=True)
 
-    welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up."
-
-    try:
+    # Welcome message (only once)
+    if not st.session_state.get('welcome_spoken', False):
+        welcome_msg = "Hello! I'm NexusAI, your personal voice assistant. Say 'Nexus' followed by your command to wake me up."
         st.session_state.audio_handler.speak(welcome_msg)
-    except Exception as e:
-        print(f"Error with text-to-speech: {e}")
+        st.session_state.welcome_spoken = True
+
+    # Bottom section with text input and system info button
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    col = st.columns([1, 2, 1])[1]
+
+    with col:
+        # Text input for chat
+        if 'input_key' not in st.session_state:
+            st.session_state.input_key = 0
+
+        text_input = st.text_input(
+            "Chat with Nexus..",
+            key=f"text_input_{st.session_state.input_key}",
+            placeholder="Type your command or question here...",
+            label_visibility="collapsed"
+        )
+
+        # Process text input
+        if text_input and text_input != st.session_state.last_processed_input:
+            process_text_input(text_input)
+            # Increment key to create new widget and clear input
+            st.session_state.input_key += 1
+            st.rerun()
 
     # Chat history display
     st.subheader("💬Conversation")
@@ -325,42 +318,14 @@ def main():
             </div>
             """, unsafe_allow_html=True)
 
-    # Bottom section with text input and buttons
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("---")
 
-    # Create columns for the bottom section
-    col1, col2, col3 = st.columns([6, 2, 2])
-
-    with col1:
-        # Text input for chat
-        text_input = st.text_input(
-            "Chat with Nexus..",
-            key="text_input",
-            placeholder="Type your command or question here...",
-            label_visibility="collapsed"
-        )
-
-        # Process text input
-        if text_input and text_input != st.session_state.last_processed_input:
-            process_text_input(text_input)
-            st.session_state.last_processed_input = text_input
-            # Clear the input field
-            st.session_state.text_input = ""
-            st.rerun()
-
-    with col2:
-        # Clear history button
-        if st.button("🗑️Clear", help="Clear conversation history"):
-            st.session_state.chat_history = []
-            st.rerun()
-
-    with col3:
-        # System info button
-        if st.button("System-Info", help="Show system information"):
-            system_info = get_system_info()
-            st.sidebar.json(system_info)
-
+    # Show detailed info in expandable section
+    with st.expander("System Information"):
+        st.json(get_system_info())
+            
     listen_for_voice()
+
 
 if __name__ == "__main__":
     main()
