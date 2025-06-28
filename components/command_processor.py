@@ -1,10 +1,9 @@
 import datetime
-import wikipedia
-import webbrowser
-import random
-import re
+import wikipedia, webbrowser
+import requests
+import random, re
 import winsound
-from components.config import WAKE_WORD, WEBSITES, JOKES, APPS
+from components.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
 from components.appLauncher import WindowsAppLauncher
 from reminders.reminder_sys import ReminderSystem
 from components.summarizer import GeminiSummarizer
@@ -76,19 +75,127 @@ class CommandProcessor:
             webbrowser.open(f"https://www.google.com/search?q={name}")
             return f"Searching for {name} on Google"
 
-    def get_weather(self, city=""):
-        """Get weather information (requires API key)"""
-        # This is a placeholder - you'll need to sign up for a weather API
-        return "Weather feature requires an API key. Please set up OpenWeatherMap API for weather updates."
+
+    def get_lat_lon(self, city):
+        """Get latitude and longitude for a city"""
+        url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&appid={WEATHER_API_KEY}"
+        try:
+            response = requests.get(url)
+            data = response.json()
+            if data and city.capitalize() == data[0]['name']:
+                return data[0]['lat'], data[0]['lon']
+        except Exception as e:
+            print("Error: ", e)
+            return None, None
+
+    def get_weather(self, city=None):
+        """Get weather information for a city"""
+        if not city:
+            return "Please tell me which city you want the weather for."
+        
+        try:
+            lat, lon = self.get_lat_lon(city)
+            if lat and lon:
+                url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}"
+                res = requests.get(url)
+                data = res.json()
+
+                # Extract weather details
+                temp = data["main"]["temp"]
+                desc = data["weather"][0]["description"]
+                humidity = data["main"]["humidity"]
+                wind_speed = data["wind"]["speed"]
+                
+                # Convert temperature from Kelvin to Celsius
+                temp_celsius = round(temp - 273.15, 1)
+                
+                # Format response
+                weather_report = (
+                    f"The current weather in {city.title()} is {desc} with a temperature of {temp_celsius}°C, "
+                    f"humidity at {humidity}%, and wind speed of {wind_speed} meters per second."
+                )
+                return weather_report
+            else:
+                return f"I couldn't find weather information for {city}. Please check the city name and try again."
+        except Exception as e:
+            print("Error: ", e)
+            return "I had trouble retrieving the weather. Please try again later."
 
     def tell_joke(self):
         return random.choice(JOKES)
 
     def calculate_expression(self, expression):
         try:
-            # Remove any non-mathematical characters for safety
+            # Convert spoken words to mathematical symbols
+            word_to_symbol = {
+                'plus': '+', 'add': '+', 'added to': '+', 'and': '+',
+                'minus': '-', 'subtract': '-', 'subtracted from': '-', 'take away': '-',
+                'times': '*', 'multiply': '*', 'multiplied by': '*', 'into': '*',
+                'divide': '/', 'divided by': '/', 'over': '/',
+                'power': '**', 'to the power of': '**', 'raised to': '**', 'squared': '**2',
+                'cubed': '**3', 'square root': 'sqrt', 'percent': '/100',
+                'point': '.', 'decimal': '.'
+            }
+            
+            # Convert number words to digits
+            number_words = {
+                'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
+                'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9',
+                'ten': '10', 'eleven': '11', 'twelve': '12', 'thirteen': '13',
+                'fourteen': '14', 'fifteen': '15', 'sixteen': '16', 'seventeen': '17',
+                'eighteen': '18', 'nineteen': '19', 'twenty': '20', 'thirty': '30',
+                'forty': '40', 'fifty': '50', 'sixty': '60', 'seventy': '70',
+                'eighty': '80', 'ninety': '90', 'hundred': '100', 'thousand': '1000'
+            }
+            
+            # Clean and normalize the expression
+            expression = expression.lower().strip()
+            
+            # Replace word numbers with digits
+            for word, digit in number_words.items():
+                expression = expression.replace(word, digit)
+            
+            # Replace mathematical word operators with symbols
+            for word, symbol in word_to_symbol.items():
+                expression = expression.replace(word, symbol)
+            
+            # Handle special cases
+            expression = expression.replace('x', '*')  # 'x' often used for multiplication
+            expression = expression.replace('÷', '/')  # division symbol
+            
+            # Remove common filler words
+            filler_words = ['what', 'is', 'equals', 'equal', 'to', 'the', 'result', 'of', 'calculate']
+            for word in filler_words:
+                expression = expression.replace(word, '')
+            
+            # Clean up extra spaces
+            expression = ' '.join(expression.split())
+            
+            # Remove any remaining non-mathematical characters (but keep spaces, decimals, and basic operators)
+            import re
             safe_expr = re.sub(r'[^0-9+\-*/().\s]', '', expression)
+            safe_expr = safe_expr.strip()
+            
+            # Check if we have a valid expression
+            if not safe_expr or not any(char.isdigit() for char in safe_expr):
+                raise ValueError("No valid mathematical expression found")
+            
+            # Handle simple cases where there might be missing operators
+            # e.g., "5 5" should be "5 * 5" or "5 + 5" - we'll assume multiplication
+            parts = safe_expr.split()
+            if len(parts) == 2 and all(part.replace('.', '').isdigit() for part in parts):
+                safe_expr = f"{parts[0]} * {parts[1]}"
+            
+            # Evaluate the expression
             result = eval(safe_expr)
+            
+            # Format the result nicely
+            if isinstance(result, float):
+                if result.is_integer():
+                    result = int(result)
+                else:
+                    result = round(result, 6)  # Round to 6 decimal places
+            
             return f"The answer is {result}"
         except:
             return self.summarizer.calculate(expression)
@@ -233,7 +340,8 @@ class CommandProcessor:
             response = self.open_app_or_site(target)
 
         elif intent == 'weather':
-            response = self.get_weather()
+            city = params.get('city', params.get('location', None))
+            response = self.get_weather(city)
 
         elif intent == 'joke':
             response = self.tell_joke()
