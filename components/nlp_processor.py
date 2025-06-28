@@ -58,21 +58,98 @@ class NLPProcessor:
             # Use spaCy for entity extraction
             doc = self.nlp(text)
             for ent in doc.ents:
+                # Clean and normalize entity text
+                entity_text = ent.text.strip().title()
+                
                 if ent.label_ not in entities:
                     entities[ent.label_] = []
-                entities[ent.label_].append(ent.text)
+                
+                # Avoid duplicates
+                if entity_text not in entities[ent.label_]:
+                    entities[ent.label_].append(entity_text)
         else:
             # Fallback to NLTK
-            tokens = word_tokenize(text)
-            pos_tags = pos_tag(tokens)
-            chunks = ne_chunk(pos_tags)
-            
-            for chunk in chunks:
-                if hasattr(chunk, 'label'):
-                    entity_name = ' '.join([token for token, pos in chunk.leaves()])
-                    if chunk.label() not in entities:
-                        entities[chunk.label()] = []
-                    entities[chunk.label()].append(entity_name)
+            try:
+                tokens = word_tokenize(text)
+                pos_tags = pos_tag(tokens)
+                chunks = ne_chunk(pos_tags)
+                
+                for chunk in chunks:
+                    if hasattr(chunk, 'label'):
+                        entity_name = ' '.join([token for token, pos in chunk.leaves()])
+                        entity_name = entity_name.strip().title()  # Clean and normalize
+                        
+                        if chunk.label() not in entities:
+                            entities[chunk.label()] = []
+                        
+                        # Avoid duplicates
+                        if entity_name not in entities[chunk.label()]:
+                            entities[chunk.label()].append(entity_name)
+            except Exception as e:
+                print(f"Error in NLTK entity extraction: {e}")
+                # Continue with empty entities if NLTK fails
+        
+        # Post-processing: Add manual entity detection for common patterns
+        text_lower = text.lower()
+        
+        # Detect city names from common weather patterns
+        weather_city_patterns = [
+            r'weather (?:in|for|of) ([a-zA-Z\s]+)',
+            r'temperature (?:in|of) ([a-zA-Z\s]+)',
+            r'(?:in|at) ([a-zA-Z\s]+) weather',
+            r'([a-zA-Z\s]+) weather'
+        ]
+        
+        for pattern in weather_city_patterns:
+            import re
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                city = match.strip().title()
+                # Filter out common non-city words
+                non_cities = ['The', 'Weather', 'Today', 'Tomorrow', 'Now', 'Current', 'Is', 'What', 'How']
+                if city and city not in non_cities and len(city) > 1:
+                    if 'GPE' not in entities:
+                        entities['GPE'] = []
+                    if city not in entities['GPE']:
+                        entities['GPE'].append(city)
+        
+        # Detect mathematical expressions for calculation
+        math_patterns = [
+            r'\b\d+(?:\.\d+)?\b',  # Numbers
+            r'\b(?:plus|minus|times|divide|multiply|add|subtract)\b',  # Math words
+            r'\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\b'  # Number words
+        ]
+        
+        math_found = False
+        for pattern in math_patterns:
+            if re.search(pattern, text_lower):
+                math_found = True
+                break
+        
+        if math_found:
+            if 'MATH' not in entities:
+                entities['MATH'] = []
+            entities['MATH'].append('mathematical_expression')
+        
+        # Detect time expressions for reminders
+        time_patterns = [
+            r'\b(?:at|in) (\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM)?)\b',
+            r'\b(?:after|in) (\d+)\s*(?:minutes?|hours?|days?)\b',
+            r'\b(?:tomorrow|today|tonight|morning|afternoon|evening)\b'
+        ]
+        
+        for pattern in time_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            if matches:
+                if 'TIME' not in entities:
+                    entities['TIME'] = []
+                for match in matches:
+                    time_expr = match if isinstance(match, str) else ' '.join(match)
+                    if time_expr not in entities['TIME']:
+                        entities['TIME'].append(time_expr.strip())
+        
+        # Clean up empty entity lists
+        entities = {k: v for k, v in entities.items() if v}
         
         return entities
     
@@ -134,13 +211,52 @@ class NLPProcessor:
             text_lower = text.lower().replace('open', '').strip()
             params['target'] = text_lower
         
+        elif intent == 'weather':
+            # Extract city name from weather requests
+            text_lower = text.lower()
+            
+            # Remove common weather phrases
+            weather_phrases = [
+                'weather', 'weather in', 'weather for', 'weather of',
+                'what is the weather', 'what\'s the weather', 'how is the weather',
+                'tell me the weather', 'get weather', 'show weather',
+                'check weather', 'temperature', 'temperature in', 'temperature of'
+            ]
+            
+            city_text = text_lower
+            for phrase in weather_phrases:
+                city_text = city_text.replace(phrase, '').strip()
+            
+            # Remove common prepositions and articles
+            remove_words = ['in', 'for', 'of', 'at', 'the', 'a', 'an', 'today', 'now', 'currently']
+            words = city_text.split()
+            filtered_words = [word for word in words if word not in remove_words]
+            
+            if filtered_words:
+                city = ' '.join(filtered_words).strip()
+                if city:  # Make sure we have something left
+                    params['city'] = city
+                    params['location'] = city  # Also add as location for flexibility
+            
+            # Also check if entities contain location information
+            if entities and 'GPE' in entities:
+                # GPE (Geopolitical Entity) often contains city/country names
+                if not params.get('city'):
+                    params['city'] = entities['GPE'][0] if entities['GPE'] else None
+                    params['location'] = params['city']
+        
         elif intent == 'math':
-            # Extract mathematical expression
-            # Simple regex to find numbers and operators
-            math_pattern = r'[\d+\-*/().\s]+'
-            match = re.search(math_pattern, text)
-            if match:
-                params['expression'] = match.group().strip()
+            # Extract mathematical expression - improved to handle spoken math
+            # Look for the entire text as potential math expression
+            math_text = text.lower()
+            
+            # Remove common calculation phrases
+            calc_phrases = ['calculate', 'what is', 'what\'s', 'compute', 'solve', 'find']
+            for phrase in calc_phrases:
+                math_text = math_text.replace(phrase, '').strip()
+            
+            if math_text:
+                params['expression'] = math_text
         
         elif intent == 'reminder':
             # Extract reminder text and time if present

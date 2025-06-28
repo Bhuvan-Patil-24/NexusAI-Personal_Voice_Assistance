@@ -82,10 +82,13 @@ class CommandProcessor:
         try:
             response = requests.get(url)
             data = response.json()
-            if data and city.capitalize() == data[0]['name']:
+            if data and len(data) > 0:
+                # Return the first match (most relevant)
                 return data[0]['lat'], data[0]['lon']
+            else:
+                return None, None
         except Exception as e:
-            print("Error: ", e)
+            print("Error in get_lat_lon: ", e)
             return None, None
 
     def get_weather(self, city=None):
@@ -94,31 +97,46 @@ class CommandProcessor:
             return "Please tell me which city you want the weather for."
         
         try:
-            lat, lon = self.get_lat_lon(city)
-            if lat and lon:
-                url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}"
-                res = requests.get(url)
-                data = res.json()
+            # Get coordinates
+            coords = self.get_lat_lon(city)
+            
+            # Check if coordinates were successfully retrieved
+            if coords is None or coords == (None, None):
+                return f"I couldn't find the location '{city}'. Please check the city name and try again."
+            
+            lat, lon = coords
+            
+            # Check if lat and lon are valid
+            if lat is None or lon is None:
+                return f"I couldn't find the location '{city}'. Please check the city name and try again."
+            
+            # Get weather data
+            url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}"
+            res = requests.get(url)
+            
+            if res.status_code != 200:
+                return "I had trouble retrieving the weather data. Please try again later."
+            
+            data = res.json()
 
-                # Extract weather details
-                temp = data["main"]["temp"]
-                desc = data["weather"][0]["description"]
-                humidity = data["main"]["humidity"]
-                wind_speed = data["wind"]["speed"]
-                
-                # Convert temperature from Kelvin to Celsius
-                temp_celsius = round(temp - 273.15, 1)
-                
-                # Format response
-                weather_report = (
-                    f"The current weather in {city.title()} is {desc} with a temperature of {temp_celsius}°C, "
-                    f"humidity at {humidity}%, and wind speed of {wind_speed} meters per second."
-                )
-                return weather_report
-            else:
-                return f"I couldn't find weather information for {city}. Please check the city name and try again."
+            # Extract weather details
+            temp = data["main"]["temp"]
+            desc = data["weather"][0]["description"]
+            humidity = data["main"]["humidity"]
+            wind_speed = data["wind"]["speed"]
+            
+            # Convert temperature from Kelvin to Celsius
+            temp_celsius = round(temp - 273.15, 1)
+            
+            # Format response
+            weather_report = (
+                f"The current weather in {city.title()} is {desc} with a temperature of {temp_celsius}°C, "
+                f"humidity at {humidity}%, and wind speed of {wind_speed} meters per second."
+            )
+            return weather_report
+            
         except Exception as e:
-            print("Error: ", e)
+            print("Error in get_weather: ", e)
             return "I had trouble retrieving the weather. Please try again later."
 
     def tell_joke(self):
@@ -251,14 +269,50 @@ class CommandProcessor:
     def smart_search(self, query, entities):
         # If entities are detected, use them to improve search
         if entities:
-            if 'PERSON' in entities:
-                query = f"{query} person biography"
-            elif 'GPE' in entities:  # Geopolitical entity (places)
-                query = f"{query} location geography"
-            elif 'ORG' in entities:  # Organization
-                query = f"{query} organization company"
-
-        return self.search_for(query)
+            # Check if entities contain actual values (not just entity types)
+            if 'PERSON' in entities and entities['PERSON']:
+                # Use the person's name from entities for more accurate search
+                person_name = entities['PERSON'][0] if isinstance(entities['PERSON'], list) else entities['PERSON']
+                query = f"{person_name} biography"
+            elif 'GPE' in entities and entities['GPE']:  # Geopolitical entity (places)
+                # Use the place name from entities
+                place_name = entities['GPE'][0] if isinstance(entities['GPE'], list) else entities['GPE']
+                query = f"{place_name} location geography information"
+            elif 'ORG' in entities and entities['ORG']:  # Organization
+                # Use the organization name from entities
+                org_name = entities['ORG'][0] if isinstance(entities['ORG'], list) else entities['ORG']
+                query = f"{org_name} organization company information"
+            elif 'MONEY' in entities and entities['MONEY']:
+                # Handle money/financial queries
+                query = f"{query} financial information"
+            elif 'DATE' in entities and entities['DATE']:
+                # Handle date-related queries
+                query = f"{query} historical information"
+            elif 'TIME' in entities and entities['TIME']:
+                # Handle time-related queries
+                query = f"{query} schedule timing information"
+            else:
+                # If entities exist but don't match specific types, enhance the original query
+                # Extract the first available entity value
+                for entity_type, entity_values in entities.items():
+                    if entity_values:
+                        entity_value = entity_values[0] if isinstance(entity_values, list) else entity_values
+                        query = f"{entity_value} {query}".strip()
+                        break
+        
+        # Clean up the query - remove duplicate words and extra spaces
+        query_words = query.split()
+        seen = set()
+        cleaned_query = []
+        for word in query_words:
+            word_lower = word.lower()
+            if word_lower not in seen:
+                seen.add(word_lower)
+                cleaned_query.append(word)
+        
+        final_query = ' '.join(cleaned_query)
+        
+        return self.search_for(final_query)
 
     def handle_follow_up(self, text):
         if 'last_intent' in self.data_manager.context_memory:
@@ -341,6 +395,7 @@ class CommandProcessor:
 
         elif intent == 'weather':
             city = params.get('city', params.get('location', None))
+            
             response = self.get_weather(city)
 
         elif intent == 'joke':

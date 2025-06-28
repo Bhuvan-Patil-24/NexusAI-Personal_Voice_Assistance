@@ -20,7 +20,7 @@ class GeminiSummarizer:
     def calculate(self, expr):
         # Create the final prompt with instruction
         final_prompt = (
-            f"Solve this maths expression and give directly the answer:\n\n{expr}\n\n"
+            f"Solve this maths expression and give directly the answer and if the expression is inccorect just say incorect expresson dont give explaination:\n\n{expr}\n\n"
         )
         response = self.generate_response(final_prompt)
         if response:
