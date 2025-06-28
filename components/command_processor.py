@@ -3,13 +3,15 @@ import wikipedia
 import webbrowser
 import requests
 import random
-import re, math
+import re
+import math
 import winsound
 from components.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
 from components.appLauncher import WindowsAppLauncher
 from reminders.reminder_sys import ReminderSystem
 from components.summarizer import GeminiSummarizer
 from components.audio_handler import AudioHandler
+from components.ui_controller import UIController
 
 
 class CommandProcessor:
@@ -20,6 +22,7 @@ class CommandProcessor:
         self.reminder_system = ReminderSystem()
         self.summarizer = GeminiSummarizer()
         self.audio_handler = AudioHandler()
+        self.ui_controller = UIController()
 
         if self.audio_handler:
             self.reminder_system.set_reminder_callback(
@@ -484,6 +487,236 @@ class CommandProcessor:
             else:
                 response = "Please provide a mathematical expression to calculate."
 
+        elif intent == 'ui_control':
+            action = params.get('action', '')
+            direction = params.get('direction', '')
+            
+            if action == 'switch_tab':
+                if direction in ['next', 'right']:
+                    self.ui_controller.switch_tab('next')
+                    response = "Switching to the next tab."
+                elif direction in ['previous', 'prev', 'left', 'back']:
+                    self.ui_controller.switch_tab('previous')
+                    response = "Switching to the previous tab."
+                else:
+                    # Default to next if direction is unclear
+                    self.ui_controller.switch_tab('next')
+                    response = "Switching to the next tab."
+                    
+            elif action == 'close_tab':
+                self.ui_controller.close_tab()
+                response = "Closed the current tab."
+                
+            elif action == 'new_tab':
+                self.ui_controller.new_tab()
+                response = "Opened a new tab."
+                
+            elif action == 'close_window':
+                self.ui_controller.close_window()
+                response = "Closed the window."
+                
+            elif action == 'minimize_window':
+                self.ui_controller.minimize_window()
+                response = "Minimized the window."
+                
+            elif action == 'maximize_window':
+                self.ui_controller.maximize_window()
+                response = "Maximized the window."
+                
+            elif action == 'volume_up':
+                self.ui_controller.volume_up()
+                response = "Increasing volume."
+                
+            elif action == 'volume_down':
+                self.ui_controller.volume_down()
+                response = "Decreasing volume."
+                
+            elif action == 'mute':
+                self.ui_controller.mute_volume()
+                response = "Muted volume."
+                
+            elif action == 'pause_play':
+                self.ui_controller.pause_play()
+                response = "Toggled pause/play."
+                
+            elif action == 'play':
+                self.ui_controller.play_media()
+                response = "Playing media."
+                
+            elif action == 'pause':
+                self.ui_controller.pause_media()
+                response = "Pausing media."
+                
+            elif action == 'next_track':
+                self.ui_controller.next_track()
+                response = "Skipping to next track."
+                
+            elif action == 'previous_track':
+                self.ui_controller.previous_track()
+                response = "Going to previous track."
+                
+            elif action == 'screenshot':
+                response = self.ui_controller.screenshot()
+                
+            elif action == 'type_text':
+                text = params.get('text', '')
+                if text:
+                    self.ui_controller.type_text(text)
+                    response = f"Typing: '{text}'"
+                else:
+                    response = "Please specify what text you want me to type."
+                    
+            elif action == 'copy':
+                self.ui_controller.copy_to_clipboard()
+                response = "Copied to clipboard."
+                
+            elif action == 'paste':
+                self.ui_controller.paste_from_clipboard()
+                response = "Pasted from clipboard."
+                
+            elif action == 'select_all':
+                self.ui_controller.select_all()
+                response = "Selected all text."
+                
+            elif action == 'undo':
+                self.ui_controller.undo()
+                response = "Undone last action."
+                
+            elif action == 'redo':
+                self.ui_controller.redo()
+                response = "Redone last action."
+                
+            elif action == 'alt_tab':
+                self.ui_controller.alt_tab()
+                response = "Switching applications."
+                
+            elif action == 'refresh':
+                self.ui_controller.refresh_page()
+                response = "Refreshed page."
+                
+            elif action == 'go_back':
+                self.ui_controller.go_back()
+                response = "Going back."
+                
+            elif action == 'go_forward':
+                self.ui_controller.go_forward()
+                response = "Going forward."
+                    
+            else:
+                # Fallback - try to determine action from the original command
+                command_lower = original_command.lower()
+                
+                if any(phrase in command_lower for phrase in ['next tab', 'switch tab', 'change tab']):
+                    direction = 'next' if 'next' in command_lower or 'right' in command_lower else 'previous'
+                    self.ui_controller.switch_tab(direction)
+                    response = f"Switching to the {direction} tab."
+                    
+                elif any(phrase in command_lower for phrase in ['new tab', 'open tab']):
+                    self.ui_controller.new_tab()
+                    response = "Opened a new tab."
+                    
+                elif 'close tab' in command_lower:
+                    self.ui_controller.close_tab()
+                    response = "Closed the current tab."
+                    
+                elif 'close window' in command_lower:
+                    self.ui_controller.close_window()
+                    response = "Closed the window."
+                    
+                elif 'minimize' in command_lower:
+                    self.ui_controller.minimize_window()
+                    response = "Minimized the window."
+                    
+                elif 'maximize' in command_lower:
+                    self.ui_controller.maximize_window()
+                    response = "Maximized the window."
+                    
+                elif any(phrase in command_lower for phrase in ['volume up', 'increase volume', 'turn up']):
+                    self.ui_controller.volume_up()
+                    response = "Increasing volume."
+                    
+                elif any(phrase in command_lower for phrase in ['volume down', 'decrease volume', 'turn down']):
+                    self.ui_controller.volume_down()
+                    response = "Decreasing volume."
+                    
+                elif 'mute' in command_lower:
+                    self.ui_controller.mute_volume()
+                    response = "Muted volume."
+                    
+                elif any(phrase in command_lower for phrase in ['pause', 'play', 'pause play', 'play pause']):
+                    if 'pause' in command_lower and 'play' not in command_lower:
+                        self.ui_controller.pause_media()
+                        response = "Pausing media."
+                    elif 'play' in command_lower and 'pause' not in command_lower:
+                        self.ui_controller.play_media()
+                        response = "Playing media."
+                    else:
+                        self.ui_controller.pause_play()
+                        response = "Toggled pause/play."
+                        
+                elif any(phrase in command_lower for phrase in ['next track', 'next song', 'skip']):
+                    self.ui_controller.next_track()
+                    response = "Skipping to next track."
+                    
+                elif any(phrase in command_lower for phrase in ['previous track', 'previous song', 'back track']):
+                    self.ui_controller.previous_track()
+                    response = "Going to previous track."
+                    
+                elif 'screenshot' in command_lower:
+                    response = self.ui_controller.screenshot()
+                    
+                elif any(phrase in command_lower for phrase in ['copy', 'ctrl c']):
+                    self.ui_controller.copy_to_clipboard()
+                    response = "Copied to clipboard."
+                    
+                elif any(phrase in command_lower for phrase in ['paste', 'ctrl v']):
+                    self.ui_controller.paste_from_clipboard()
+                    response = "Pasted from clipboard."
+                    
+                elif any(phrase in command_lower for phrase in ['select all', 'ctrl a']):
+                    self.ui_controller.select_all()
+                    response = "Selected all text."
+                    
+                elif any(phrase in command_lower for phrase in ['undo', 'ctrl z']):
+                    self.ui_controller.undo()
+                    response = "Undone last action."
+                    
+                elif any(phrase in command_lower for phrase in ['redo', 'ctrl y']):
+                    self.ui_controller.redo()
+                    response = "Redone last action."
+                    
+                elif any(phrase in command_lower for phrase in ['alt tab', 'switch app']):
+                    self.ui_controller.alt_tab()
+                    response = "Switching applications."
+                    
+                elif any(phrase in command_lower for phrase in ['refresh', 'reload', 'f5']):
+                    self.ui_controller.refresh_page()
+                    response = "Refreshed page."
+                    
+                elif any(phrase in command_lower for phrase in ['go back', 'back', 'previous page']):
+                    self.ui_controller.go_back()
+                    response = "Going back."
+                    
+                elif any(phrase in command_lower for phrase in ['go forward', 'forward', 'next page']):
+                    self.ui_controller.go_forward()
+                    response = "Going forward."
+                    
+                elif any(phrase in command_lower for phrase in ['type ', 'write ', 'input ']):
+                    # Extract text to type from the command
+                    for phrase in ['type ', 'write ', 'input ']:
+                        if phrase in command_lower:
+                            text_to_type = command_lower.split(phrase, 1)[1].strip()
+                            if text_to_type:
+                                self.ui_controller.type_text(text_to_type)
+                                response = f"Typing: '{text_to_type}'"
+                            else:
+                                response = "Please specify what text you want me to type."
+                            break
+                    else:
+                        response = "Please specify what text you want me to type."
+                        
+                else:
+                    response = "I couldn't understand what UI action you want me to perform. Try commands like 'next tab', 'close window', 'volume up', 'pause', 'play', 'take screenshot', or 'type hello world'."
         elif intent == 'greeting':
             # Personalized greeting based on time and sentiment
             hour = datetime.datetime.now().hour
