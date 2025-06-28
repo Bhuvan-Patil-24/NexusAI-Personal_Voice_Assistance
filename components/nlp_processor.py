@@ -106,7 +106,7 @@ class NLPProcessor:
             for match in matches:
                 city = match.strip().title()
                 # Filter out common non-city words
-                non_cities = ['The', 'Weather', 'Today', 'Tomorrow', 'Now', 'Current', 'Is', 'What', 'How']
+                non_cities = ['he', 'weather', 'today', 'tomorrow', 'now', 'current', 'is', 'what', 'how']
                 if city and city not in non_cities and len(city) > 1:
                     if 'GPE' not in entities:
                         entities['GPE'] = []

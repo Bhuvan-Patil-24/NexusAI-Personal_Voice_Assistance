@@ -1,7 +1,9 @@
 import datetime
-import wikipedia, webbrowser
+import wikipedia
+import webbrowser
 import requests
-import random, re
+import random
+import re, math
 import winsound
 from components.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
 from components.appLauncher import WindowsAppLauncher
@@ -75,7 +77,6 @@ class CommandProcessor:
             webbrowser.open(f"https://www.google.com/search?q={name}")
             return f"Searching for {name} on Google"
 
-
     def get_lat_lon(self, city):
         """Get latitude and longitude for a city"""
         url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&appid={WEATHER_API_KEY}"
@@ -95,28 +96,28 @@ class CommandProcessor:
         """Get weather information for a city"""
         if not city:
             return "Please tell me which city you want the weather for."
-        
+
         try:
             # Get coordinates
             coords = self.get_lat_lon(city)
-            
+
             # Check if coordinates were successfully retrieved
             if coords is None or coords == (None, None):
                 return f"I couldn't find the location '{city}'. Please check the city name and try again."
-            
+
             lat, lon = coords
-            
+
             # Check if lat and lon are valid
             if lat is None or lon is None:
                 return f"I couldn't find the location '{city}'. Please check the city name and try again."
-            
+
             # Get weather data
             url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}"
             res = requests.get(url)
-            
+
             if res.status_code != 200:
                 return "I had trouble retrieving the weather data. Please try again later."
-            
+
             data = res.json()
 
             # Extract weather details
@@ -124,17 +125,17 @@ class CommandProcessor:
             desc = data["weather"][0]["description"]
             humidity = data["main"]["humidity"]
             wind_speed = data["wind"]["speed"]
-            
+
             # Convert temperature from Kelvin to Celsius
             temp_celsius = round(temp - 273.15, 1)
-            
+
             # Format response
             weather_report = (
                 f"The current weather in {city.title()} is {desc} with a temperature of {temp_celsius}°C, "
                 f"humidity at {humidity}%, and wind speed of {wind_speed} meters per second."
             )
             return weather_report
-            
+
         except Exception as e:
             print("Error in get_weather: ", e)
             return "I had trouble retrieving the weather. Please try again later."
@@ -152,9 +153,9 @@ class CommandProcessor:
                 'divide': '/', 'divided by': '/', 'over': '/',
                 'power': '**', 'to the power of': '**', 'raised to': '**', 'squared': '**2',
                 'cubed': '**3', 'square root': 'sqrt', 'percent': '/100',
-                'point': '.', 'decimal': '.'
+                'point': '.', 'decimal': '.', 'factorial': '!', 'factorial of': '!'
             }
-            
+
             # Convert number words to digits
             number_words = {
                 'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
@@ -165,58 +166,127 @@ class CommandProcessor:
                 'forty': '40', 'fifty': '50', 'sixty': '60', 'seventy': '70',
                 'eighty': '80', 'ninety': '90', 'hundred': '100', 'thousand': '1000'
             }
-            
+
             # Clean and normalize the expression
             expression = expression.lower().strip()
-            
+
             # Replace word numbers with digits
             for word, digit in number_words.items():
                 expression = expression.replace(word, digit)
-            
+
             # Replace mathematical word operators with symbols
             for word, symbol in word_to_symbol.items():
                 expression = expression.replace(word, symbol)
-            
+
             # Handle special cases
-            expression = expression.replace('x', '*')  # 'x' often used for multiplication
+            # 'x' often used for multiplication
+            expression = expression.replace('x', '*')
             expression = expression.replace('÷', '/')  # division symbol
-            
+
             # Remove common filler words
-            filler_words = ['what', 'is', 'equals', 'equal', 'to', 'the', 'result', 'of', 'calculate']
+            filler_words = ['what', 'is', 'equals', 'equal',
+                            'to', 'the', 'result', 'of', 'calculate']
             for word in filler_words:
                 expression = expression.replace(word, '')
-            
+
             # Clean up extra spaces
             expression = ' '.join(expression.split())
-            
+
+            # Handle factorial expressions
+            if '!' in expression:
+                return self._calculate_factorial_expression(expression)
+
             # Remove any remaining non-mathematical characters (but keep spaces, decimals, and basic operators)
             import re
             safe_expr = re.sub(r'[^0-9+\-*/().\s]', '', expression)
             safe_expr = safe_expr.strip()
-            
+
             # Check if we have a valid expression
             if not safe_expr or not any(char.isdigit() for char in safe_expr):
                 raise ValueError("No valid mathematical expression found")
-            
+
             # Handle simple cases where there might be missing operators
             # e.g., "5 5" should be "5 * 5" or "5 + 5" - we'll assume multiplication
             parts = safe_expr.split()
             if len(parts) == 2 and all(part.replace('.', '').isdigit() for part in parts):
                 safe_expr = f"{parts[0]} * {parts[1]}"
-            
+
+            # Handle square root
+            if 'sqrt' in expression:
+                safe_expr = self._handle_sqrt(safe_expr)
+
             # Evaluate the expression
             result = eval(safe_expr)
-            
+
             # Format the result nicely
             if isinstance(result, float):
                 if result.is_integer():
                     result = int(result)
                 else:
                     result = round(result, 6)  # Round to 6 decimal places
-            
+
             return f"The answer is {result}"
+
         except:
+            # If conversion fails, try the summarizer as fallback
             return self.summarizer.calculate(expression)
+
+    def _calculate_factorial_expression(self, expression):
+        try:
+            # Find all factorial patterns like "5!" or "number!"
+            factorial_pattern = r'(\d+)!'
+
+            # Replace all factorials with their calculated values
+            def replace_factorial(match):
+                num = int(match.group(1))
+                if num < 0:
+                    raise ValueError(
+                        "Factorial is not defined for negative numbers")
+                if num > 170:  # Prevent overflow
+                    raise ValueError(
+                        "Number too large for factorial calculation")
+                return str(math.factorial(num))
+
+            # Replace factorials in the expression
+            processed_expr = re.sub(
+                factorial_pattern, replace_factorial, expression)
+
+            # Now evaluate the rest of the expression normally
+            safe_expr = re.sub(r'[^0-9+\-*/().\s]', '', processed_expr)
+            safe_expr = safe_expr.strip()
+
+            if safe_expr:
+                result = eval(safe_expr)
+            else:
+                # If it's just a single factorial
+                factorial_match = re.search(r'(\d+)!', expression)
+                if factorial_match:
+                    num = int(factorial_match.group(1))
+                    result = math.factorial(num)
+                else:
+                    raise ValueError("Invalid factorial expression")
+
+            # Format the result
+            if isinstance(result, float) and result.is_integer():
+                result = int(result)
+
+            return f"The answer is {result}"
+
+        except ValueError as e:
+            return f"Error: {str(e)}"
+        except Exception:
+            return "I couldn't calculate that factorial expression."
+
+    def _handle_sqrt(self, expression):
+        # This is a simple implementation - you can expand it
+        # For now, it handles basic sqrt cases
+        sqrt_pattern = r'sqrt\((\d+(?:\.\d+)?)\)'
+
+        def replace_sqrt(match):
+            num = float(match.group(1))
+            return str(math.sqrt(num))
+
+        return re.sub(sqrt_pattern, replace_sqrt, expression)
 
     def process_reminder_command(self, command, params):
         """Process reminder-related commands using the reminder system"""
@@ -272,15 +342,19 @@ class CommandProcessor:
             # Check if entities contain actual values (not just entity types)
             if 'PERSON' in entities and entities['PERSON']:
                 # Use the person's name from entities for more accurate search
-                person_name = entities['PERSON'][0] if isinstance(entities['PERSON'], list) else entities['PERSON']
+                person_name = entities['PERSON'][0] if isinstance(
+                    entities['PERSON'], list) else entities['PERSON']
                 query = f"{person_name} biography"
-            elif 'GPE' in entities and entities['GPE']:  # Geopolitical entity (places)
+            # Geopolitical entity (places)
+            elif 'GPE' in entities and entities['GPE']:
                 # Use the place name from entities
-                place_name = entities['GPE'][0] if isinstance(entities['GPE'], list) else entities['GPE']
+                place_name = entities['GPE'][0] if isinstance(
+                    entities['GPE'], list) else entities['GPE']
                 query = f"{place_name} location geography information"
             elif 'ORG' in entities and entities['ORG']:  # Organization
                 # Use the organization name from entities
-                org_name = entities['ORG'][0] if isinstance(entities['ORG'], list) else entities['ORG']
+                org_name = entities['ORG'][0] if isinstance(
+                    entities['ORG'], list) else entities['ORG']
                 query = f"{org_name} organization company information"
             elif 'MONEY' in entities and entities['MONEY']:
                 # Handle money/financial queries
@@ -296,10 +370,11 @@ class CommandProcessor:
                 # Extract the first available entity value
                 for entity_type, entity_values in entities.items():
                     if entity_values:
-                        entity_value = entity_values[0] if isinstance(entity_values, list) else entity_values
+                        entity_value = entity_values[0] if isinstance(
+                            entity_values, list) else entity_values
                         query = f"{entity_value} {query}".strip()
                         break
-        
+
         # Clean up the query - remove duplicate words and extra spaces
         query_words = query.split()
         seen = set()
@@ -309,18 +384,20 @@ class CommandProcessor:
             if word_lower not in seen:
                 seen.add(word_lower)
                 cleaned_query.append(word)
-        
+
         final_query = ' '.join(cleaned_query)
-        
+
         return self.search_for(final_query)
 
     def handle_follow_up(self, text):
         if 'last_intent' in self.data_manager.context_memory:
             last_intent = self.data_manager.context_memory['last_intent']
-            last_params = self.data_manager.context_memory.get('last_params', {})
+            last_params = self.data_manager.context_memory.get(
+                'last_params', {})
 
         # Define follow-up trigger words
-        follow_up_words = ['more', 'tell me more', 'continue', 'explain', 'details']
+        follow_up_words = ['more', 'tell me more',
+                           'continue', 'explain', 'details']
 
         # Check if input matches any follow-up pattern
         if any(word in text.lower() for word in follow_up_words):
@@ -395,7 +472,7 @@ class CommandProcessor:
 
         elif intent == 'weather':
             city = params.get('city', params.get('location', None))
-            
+
             response = self.get_weather(city)
 
         elif intent == 'joke':
