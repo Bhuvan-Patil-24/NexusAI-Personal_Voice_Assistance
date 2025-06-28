@@ -1,5 +1,4 @@
 import pyautogui
-import time
 import os
 from datetime import datetime
 
@@ -151,7 +150,7 @@ class UIController:
 
             # Generate filename with timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"screenshots/screenshot_{timestamp}.png"
+            filename = f"screenshots/ss_{timestamp}.png"
 
             # Take screenshot
             screenshot = pyautogui.screenshot()

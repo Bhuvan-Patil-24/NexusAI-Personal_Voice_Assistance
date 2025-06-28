@@ -469,6 +469,10 @@ class CommandProcessor:
             print(f"Searching for {query}...")
             response = self.smart_search(query, entities)
 
+        elif intent == 'compose':
+            webbrowser.open("https://mail.google.com/mail/?view=cm&fs=1&tf=1")
+            response = "Opening browser to compose an email."
+
         elif intent == 'open':
             target = params.get('target', 'google')
             response = self.open_app_or_site(target)
@@ -515,11 +519,11 @@ class CommandProcessor:
                 self.ui_controller.close_window()
                 response = "Closed the window."
                 
-            elif action == 'minimize_window':
+            elif action == 'minimise_window':
                 self.ui_controller.minimize_window()
                 response = "Minimized the window."
                 
-            elif action == 'maximize_window':
+            elif action == 'maximise_window':
                 self.ui_controller.maximize_window()
                 response = "Maximized the window."
                 
@@ -623,11 +627,11 @@ class CommandProcessor:
                     self.ui_controller.close_window()
                     response = "Closed the window."
                     
-                elif 'minimize' in command_lower:
+                elif 'minimise' in command_lower:
                     self.ui_controller.minimize_window()
                     response = "Minimized the window."
                     
-                elif 'maximize' in command_lower:
+                elif 'maximise' in command_lower:
                     self.ui_controller.maximize_window()
                     response = "Maximized the window."
                     
