@@ -7,11 +7,11 @@ import re
 import math
 import winsound
 from env.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
-from components.appLauncher import WindowsAppLauncher
-from reminders.reminder_sys import ReminderSystem
-from components.summarizer import GeminiSummarizer
+from features.appLauncher import WindowsAppLauncher
+from features.reminders.reminder_sys import ReminderSystem
+from features.summarizer import GeminiSummarizer
 from components.audio_handler import AudioHandler
-from components.ui_controller import UIController
+from features.ui_controller import UIController
 
 
 class CommandProcessor:
