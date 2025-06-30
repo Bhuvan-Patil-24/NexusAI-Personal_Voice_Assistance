@@ -4,7 +4,7 @@ from datetime import datetime
 from threading import Thread
 # Import your existing modules
 try:
-    from components.config import WAKE_WORD
+    from env.config import WAKE_WORD
     from components.nlp_processor import NLPProcessor
     from components.data_manager import DataManager
     from components.audio_handler import AudioHandler

@@ -6,7 +6,7 @@ import random
 import re
 import math
 import winsound
-from components.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
+from env.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
 from components.appLauncher import WindowsAppLauncher
 from reminders.reminder_sys import ReminderSystem
 from components.summarizer import GeminiSummarizer
