@@ -1,32 +1,14 @@
-# Core speech and text processing
 SpeechRecognition
 pyttsx3
-pyaudio
-
-# Windows-specific text-to-speech (only for Windows)
-pywin32
-
-# Web scraping and browser control
 wikipedia
-
-# Streamlit for web interface
-streamlit
-streamlit-webrtc
-
-# Audio/video processing
-av
-
-# Scientific computing
-numpy
-
-# Natural Language Processing
+requests
 nltk
 textblob
 spacy
-
-# Additional dependencies that might be needed
-requests
-urllib3
+dateparser
+pyautogui
+streamlit
+google-generativeai
 
 # Note: You may also need to download NLTK data and spaCy models after installation
 # Run these commands after pip install:
