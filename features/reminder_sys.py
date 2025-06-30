@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReminderSystem:
-    def __init__(self, db_path="reminders/reminders.db"):
+    def __init__(self, db_path="nexus_ai_data/reminders.db"):
         self.db_path = db_path
         self.active_reminders = {}  # Store active reminder threads
         self.running = True

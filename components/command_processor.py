@@ -8,7 +8,7 @@ import math
 import winsound
 from env.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
 from features.appLauncher import WindowsAppLauncher
-from features.reminders.reminder_sys import ReminderSystem
+from features.reminder_sys import ReminderSystem
 from features.summarizer import GeminiSummarizer
 from components.audio_handler import AudioHandler
 from features.ui_controller import UIController
