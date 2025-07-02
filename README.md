@@ -1,4 +1,4 @@
-# 🎤 NexusAI - Advanced Voice Assistant
+# 🎤 NexusAI - Personal Voice Assistant
 
 NexusAI is a sophisticated, modular voice assistant built with Python that combines speech recognition, natural language processing, and a sleek user interface. It's designed to help you interact with your computer using natural voice commands while providing a modern, customizable experience.
 
