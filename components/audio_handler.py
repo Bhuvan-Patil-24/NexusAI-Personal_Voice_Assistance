@@ -1,6 +1,6 @@
 import speech_recognition as sr
 import pyttsx3
-from env.config import SPEECH_RATE, SPEECH_VOLUME
+from components.config import SPEECH_RATE, SPEECH_VOLUME
 
 class AudioHandler:
     def __init__(self):

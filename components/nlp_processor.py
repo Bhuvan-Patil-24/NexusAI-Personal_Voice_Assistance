@@ -7,7 +7,7 @@ from nltk.tag import pos_tag
 from textblob import TextBlob
 import spacy
 import difflib
-from env.config import NLTK_DOWNLOADS, SPACY_MODEL, INTENT_PATTERNS, EMOTION_PATTERNS
+from components.config import NLTK_DOWNLOADS, SPACY_MODEL, INTENT_PATTERNS, EMOTION_PATTERNS
 
 
 class NLPProcessor:

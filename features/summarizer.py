@@ -1,4 +1,4 @@
-from env.config import GEMINI_API_KEY
+from components.config import GEMINI_API_KEY
 import google.generativeai as genai
 
 
