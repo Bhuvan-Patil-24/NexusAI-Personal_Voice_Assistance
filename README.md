@@ -19,8 +19,7 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 
 ## 🏗️ Project Structure
 
-
-
+```
 .
 ├── components/               # Core functionality modules
 │   ├── audio\_handler.py      # Speech recognition and synthesis
@@ -38,7 +37,7 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 ├── main.py                   # Streamlit UI entry point
 ├── nexus\_ai.py               # Core assistant logic
 └── requirements.txt          # Project dependencies
-
+```
 
 ---
 
