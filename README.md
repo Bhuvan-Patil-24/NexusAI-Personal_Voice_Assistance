@@ -55,7 +55,7 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 1. **Clone the repository**
 
 ```bash
-   git clone https://github.com/yourusername/NexusAI.git
+   git clone https://github.com/Bhuvan-Patil-24/NexusAI-Personal_Voice_Assistance.git
    cd NexusAI
 ```
 
