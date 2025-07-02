@@ -33,7 +33,7 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 │   ├── appLauncher.py        # Application launching
 │   ├── reminder\_sys.py       # Reminder management
 │   ├── summarizer.py         # Text summarization
-│   └── ui\_controller.py      # UI management
+│   └── ui\_controller.py      # Controls UI manipulation
 ├── main.py                   # Streamlit UI entry point
 ├── nexus\_ai.py               # Core assistant logic
 └── requirements.txt          # Project dependencies
@@ -141,6 +141,7 @@ css/style.css
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This is a first version of the projet and may be in the future it may be upgraded.
+Hance, Contributions are welcome! Please feel free to submit a Pull Request or Issues.
 
 ---
