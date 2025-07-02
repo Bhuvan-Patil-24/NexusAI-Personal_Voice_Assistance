@@ -103,8 +103,8 @@ Activate NexusAI by saying the wake word **"Nexus"** followed by your command, f
 * `Nexus, what time is it?`
 * `Nexus, open Chrome`
 * `Nexus, remind me to check emails in 30 minutes`
-* `Nexus, what's the weather like today?`
-* `Nexus, summarize this article for me`
+* `Nexus, weather of <city_name_> today?`
+* `Nexus, summarize <topic_name> for me`
 
 ---
 
