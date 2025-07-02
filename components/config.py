@@ -1,5 +1,9 @@
 from pathlib import Path
 
+
+SPEECH_RATE = 180
+SPEECH_VOLUME = 1.0
+
 # Data Storage Configuration
 DATA_DIR = Path("nexus_ai_data")
 HISTORY_FILE = DATA_DIR / "conversation_history.json"
