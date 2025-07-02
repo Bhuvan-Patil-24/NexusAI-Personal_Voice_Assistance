@@ -1,6 +1,6 @@
 myenv/
 nexus_ai_data/
 __pycache__
-config.py
 copy_of_main.py
 screenshots/
+.env
