@@ -6,13 +6,17 @@ import random
 import re
 import math
 import winsound
-from components.config import WAKE_WORD, WEBSITES, JOKES, APPS, WEATHER_API_KEY
+from components.config import WEBSITES, JOKES, APPS
 from features.appLauncher import WindowsAppLauncher
 from features.reminder_sys import ReminderSystem
 from features.summarizer import GeminiSummarizer
 from components.audio_handler import AudioHandler
 from features.ui_controller import UIController
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
+WAKE_WORD = os.getenv("WAKE_WORD")
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 class CommandProcessor:
     def __init__(self, nlp_processor, data_manager):
