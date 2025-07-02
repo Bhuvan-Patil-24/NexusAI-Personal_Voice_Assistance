@@ -54,29 +54,30 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 
 1. **Clone the repository**
 
-   ```bash
+```bash
    git clone https://github.com/yourusername/NexusAI.git
    cd NexusAI
 ```
 
 2. **Install dependencies**
 
-   ```bash
+```bash
    pip install -r requirements.txt
 ```
 
 3. **Download required NLP models**
 
-   ```bash
+```bash
    python -m nltk.downloader punkt stopwords wordnet averaged_perceptron_tagger maxent_ne_chunker words
    python -m spacy download en_core_web_sm
-   ```
+```
 
 4. **Create a `.env` file in the project root with the following:**
+
 ```bash
    WAKE_WORD=nexus
    WEATHER_API_KEY=your_api_key_here
-   ```
+```
 ---
 
 ### Running NexusAI
@@ -143,13 +144,3 @@ css/style.css
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
-
-````
-
----
-
-✅ **How to use:**  
-Copy everything between the two ```markdown blocks above into your `README.md`.  
-
-If you’d like, I can help you add badges or further customize it!
-````
