@@ -2,9 +2,10 @@ import streamlit as st
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-# Import your existing modules
 load_dotenv()
 WAKE_WORD = os.getenv("WAKE_WORD")
+
+# Import your existing modules
 try:
     from components.nlp_processor import NLPProcessor
     from components.data_manager import DataManager
