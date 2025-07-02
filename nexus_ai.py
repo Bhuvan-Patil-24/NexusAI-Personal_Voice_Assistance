@@ -1,9 +1,12 @@
-from components.config import WAKE_WORD
 from components.nlp_processor import NLPProcessor
 from components.data_manager import DataManager
 from components.audio_handler import AudioHandler
 from components.command_processor import CommandProcessor
 # import traceback
+import os
+from dotenv import load_dotenv
+load_dotenv()
+WAKE_WORD = os.getenv("WAKE_WORD")
 
 class NexusAI:
     def __init__(self):
