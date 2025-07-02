@@ -1,6 +1,9 @@
 from components.config import GEMINI_API_KEY
 import google.generativeai as genai
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 class GeminiSummarizer:
     def __init__(self, model_name='gemini-2.5-flash', temperature=0.4, top_p=1.0, top_k=40):
