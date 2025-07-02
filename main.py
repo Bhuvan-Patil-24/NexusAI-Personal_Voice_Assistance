@@ -1,10 +1,11 @@
 import streamlit as st
-import time
 from datetime import datetime
-from threading import Thread
+import os
+from dotenv import load_dotenv
 # Import your existing modules
+load_dotenv()
+WAKE_WORD = os.getenv("WAKE_WORD")
 try:
-    from components.config import WAKE_WORD
     from components.nlp_processor import NLPProcessor
     from components.data_manager import DataManager
     from components.audio_handler import AudioHandler
@@ -13,7 +14,7 @@ except ImportError as e:
     st.error(f"Missing required module: {e}")
     st.error("Please install missing packages and ensure all modules are available.")
     st.stop()
-    
+
 # Configure Streamlit page
 st.set_page_config(
     page_title="NexusAI Voice Assistant",
