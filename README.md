@@ -9,7 +9,7 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 - 🎙️ **Voice Commands** – Control apps and get information by speaking.
 - 🧠 **NLP** – Understands intent, context, and sentiment.
 - 🔄 **Contextual Follow-Ups** – Continues conversations naturally.
-- 📝 **Summarization** – Quickly condenses long texts.
+- 📝 **Wikipedia search** – Quickly search about any topic.
 - ➗ **Calculations** – Solves math queries instantly.
 - 🔔 **Reminders** – Set alerts hands-free.
 - 🚀 **App Launcher** – Open apps and websites instantly.
