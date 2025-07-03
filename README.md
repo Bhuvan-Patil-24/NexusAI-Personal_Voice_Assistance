@@ -6,14 +6,18 @@ NexusAI is a sophisticated, modular voice assistant built with Python that combi
 
 ## ✨ Features
 
-- 🎙️ **Voice Recognition** – Interact with your computer using natural speech
-- 🧠 **Advanced NLP** – Understand complex commands
-- 🚀 **App Launcher** – Open applications via voice
-- 🔔 **Reminder System** – Set and manage reminders
-- 📝 **Text Summarization** – Summarize content using Google’s Gemini AI
-- 🌐 **Web Integration** – Search the web and access information
-- 🎨 **Modern UI** – Sleek, animated interface built with Streamlit
-- 🧩 **Modular Architecture** – Easily extend with new features
+- 🎙️ **Voice Commands** – Control apps and get information by speaking.
+- 🧠 **NLP** – Understands intent, context, and sentiment.
+- 🔄 **Contextual Follow-Ups** – Continues conversations naturally.
+- 📝 **Summarization** – Quickly condenses long texts.
+- ➗ **Calculations** – Solves math queries instantly.
+- 🔔 **Reminders** – Set alerts hands-free.
+- 🚀 **App Launcher** – Open apps and websites instantly.
+- 🌤️ **Weather Updates** – Real-time forecasts on request.
+- 📧 **Email Shortcuts** – Compose emails fast.
+- 🕒 **Quick Info** – Tells time, date, and even jokes.
+- 🎨 **Interactive UI** – Modern Streamlit interface.
+- 🎛️ **Media Controls** – Manage volume and windows.
 
 ---
 
