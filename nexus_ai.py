@@ -2,7 +2,6 @@ from components.nlp_processor import NLPProcessor
 from components.data_manager import DataManager
 from components.audio_handler import AudioHandler
 from components.command_processor import CommandProcessor
-# import traceback
 import os
 from dotenv import load_dotenv
 load_dotenv()
