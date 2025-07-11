@@ -96,10 +96,15 @@ class NLPProcessor:
 
         # Detect city names from common weather patterns
         weather_city_patterns = [
-            r'weather (?:in|for|of) ([a-zA-Z\s]+)',
-            r'temperature (?:in|of) ([a-zA-Z\s]+)',
-            r'(?:in|at) ([a-zA-Z\s]+) weather',
-            r'([a-zA-Z\s]+) weather'
+            r'(?:tell\s+me\s+the\s+)?weather\s+(?:in|for|of)\s+([a-zA-Z\s]+)',
+            r'(?:tell\s+me\s+the\s+)?temperature\s+(?:in|for|of)\s+([a-zA-Z\s]+)',
+            r'(?:what\s+is\s+the\s+)?weather\s+(?:in|for|of)\s+([a-zA-Z\s]+)',
+            r'(?:what\s+is\s+the\s+)?temperature\s+(?:in|for|of)\s+([a-zA-Z\s]+)',
+            r'(?:in|at)\s+([a-zA-Z\s]+)\s+weather',
+            r'weather\s+in\s+([a-zA-Z\s]+)',
+            r'weather\s+for\s+([a-zA-Z\s]+)',
+            r'weather\s+of\s+([a-zA-Z\s]+)',
+            r'([a-zA-Z\s]+)\s+weather'
         ]
 
         for pattern in weather_city_patterns:
@@ -108,8 +113,8 @@ class NLPProcessor:
             for match in matches:
                 city = match.strip().title()
                 # Filter out common non-city words
-                non_cities = ['he', 'weather', 'today', 'tomorrow',
-                              'now', 'current', 'is', 'what', 'how']
+                non_cities = ['he', 'weather', 'today', 'tell me' 'tomorrow',
+                              'now', 'current', 'is', 'what', 'how', 'the', 'and']
                 if city and city not in non_cities and len(city) > 1:
                     if 'GPE' not in entities:
                         entities['GPE'] = []
