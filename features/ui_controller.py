@@ -156,7 +156,7 @@ class UIController:
             screenshot = pyautogui.screenshot()
             screenshot.save(filename)
 
-            return f"Screenshot saved as {filename}"
+            return f"Screenshot saved successfully!"
         except Exception as e:
             print(f"Error taking screenshot: {e}")
             return "Failed to take screenshot"
